@@ -387,21 +387,45 @@
     }
 
     /* ─── COLOR CUSTOMIZER (admin only) ─── */
+    #cp-toggle-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem; letter-spacing: 0.12em;
+      padding: 0.3rem 0.7rem;
+      cursor: pointer; border-radius: 2px;
+      transition: all 0.18s;
+      white-space: nowrap;
+    }
+    body.admin-mode #cp-toggle-btn { display: inline-flex; align-items: center; gap: 0.4rem; }
+    #cp-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+    #cp-toggle-btn.active { border-color: var(--green); color: var(--green); }
+
     #color-panel {
       display: none;
-      position: fixed; top: 52px; right: 0; z-index: 450;
+      position: fixed;
+      top: 62px;
+      right: 16px;
+      z-index: 450;
       background: #0e0e0e;
-      border-left: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
       width: 240px;
       padding: 1.2rem;
-      animation: slideIn 0.2s ease;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      animation: slideIn 0.18s ease;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
     }
+    #color-panel::-webkit-scrollbar { width: 2px; }
+    #color-panel::-webkit-scrollbar-thumb { background: #333; }
     @keyframes slideIn {
-      from { opacity:0; transform:translateX(20px); }
-      to   { opacity:1; transform:translateX(0); }
+      from { opacity:0; transform:translateY(-8px); }
+      to   { opacity:1; transform:translateY(0); }
     }
-    body.admin-mode #color-panel { display: block; }
+    #color-panel.open { display: block; }
     .cp-title {
       font-family: 'Space Mono', monospace;
       font-size: 0.58rem; letter-spacing: 0.18em;
@@ -475,6 +499,7 @@
   </div>
   <div class="nav-right">
     <div id="admin-dot" title="Admin mode — type 'admin' to logout"></div>
+    <button id="cp-toggle-btn" onclick="toggleColorPanel()" title="Color settings">🎨 COLORS</button>
     <input id="site-title-input" type="text" value="In-sight by artist"
       title="Site name (admin only)"
       onblur="saveSiteTitle(this.value)"
@@ -782,6 +807,11 @@ function logoutAdmin() {
   isAdmin = false;
   document.body.classList.remove('admin-mode');
   document.getElementById('admin-dot').classList.remove('on');
+  // Close and hide color panel
+  const panel = document.getElementById('color-panel');
+  const btn   = document.getElementById('cp-toggle-btn');
+  if (panel) panel.classList.remove('open');
+  if (btn)   btn.classList.remove('active');
   toast('Logged out of admin');
 }
 
@@ -1181,6 +1211,26 @@ const DEFAULT_COLORS = {
   'about-role-color': '#555555',
   'about-body-color': '#aaaaaa',
 };
+
+function toggleColorPanel() {
+  const panel = document.getElementById('color-panel');
+  const btn   = document.getElementById('cp-toggle-btn');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active', !isOpen);
+}
+
+// Close panel when clicking outside
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('color-panel');
+  const btn   = document.getElementById('cp-toggle-btn');
+  if (panel && panel.classList.contains('open')) {
+    if (!panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.classList.remove('open');
+      btn.classList.remove('active');
+    }
+  }
+});
 
 function applyColor(varName, value) {
   document.documentElement.style.setProperty(varName, value);
