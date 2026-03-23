@@ -638,8 +638,20 @@ function ytId(raw) {
   ]) { const m = raw.match(p); if (m) return m[1]; }
   return null;
 }
-function ytThumb(id, q='mqdefault') {
+function ytThumb(id, q='maxresdefault') {
   return `https://img.youtube.com/vi/${id}/${q}.jpg`;
+}
+
+// Smart fallback: maxres → hqdefault → sddefault
+const THUMB_CHAIN = ['maxresdefault','hqdefault','sddefault'];
+function handleThumbErr(img) {
+  const cur = img.dataset.fallback ? parseInt(img.dataset.fallback) : 0;
+  const next = cur + 1;
+  if (next < THUMB_CHAIN.length) {
+    const ytid = img.dataset.ytid;
+    img.dataset.fallback = next;
+    img.src = ytThumb(ytid, THUMB_CHAIN[next]);
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -676,14 +688,16 @@ function renderGrid() {
   }
 
   grid.innerHTML = list.map(v => {
-    const th   = v.custom_thumb || ytThumb(v.yt_id);
-    const fb   = ytThumb(v.yt_id,'sddefault');
+    const th   = v.custom_thumb || '';
     const tags = (v.tags||[]).map(t=>`<span class="item-tag">${esc(t)}</span>`).join('');
+    const ytid = v.yt_id;
     return `<div class="grid-item"
         onclick="openLb('${v.id}')"
         oncontextmenu="openCtx(event,'${v.id}')">
       <div class="item-edit-badge">EDIT</div>
-      <img src="${th}" alt="${esc(v.title||'')}" loading="lazy" onerror="this.src='${fb}'"/>
+      <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/maxresdefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
+        alt="${esc(v.title||'')}" loading="lazy"
+        onerror="handleThumbErr(this)"/>
       <div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
       <div class="grid-item-overlay">
         <div class="item-title">${esc(v.title||'')}</div>
@@ -808,7 +822,13 @@ function openEdit(id) {
   document.getElementById('f-tags').value   = (v.tags||[]).join(', ');
   document.getElementById('f-thumb').value  = v.custom_thumb || '';
   const p = document.getElementById('thumb-preview');
-  p.src = v.custom_thumb || ytThumb(v.yt_id);
+  if (v.custom_thumb) {
+    p.src = v.custom_thumb;
+  } else {
+    p.dataset.ytid = v.yt_id; p.dataset.fallback = '0';
+    p.onerror = function(){ handleThumbErr(this); };
+    p.src = ytThumb(v.yt_id, 'maxresdefault');
+  }
   p.style.display = 'block';
   document.getElementById('modal-bg').classList.add('open');
 }
@@ -824,7 +844,9 @@ function previewThumb() {
   const ovr = document.getElementById('f-thumb').value.trim();
   const p   = document.getElementById('thumb-preview');
   if (id && !ovr) {
-    p.src = ytThumb(id); p.style.display='block';
+    p.dataset.ytid = id; p.dataset.fallback = '0';
+    p.onerror = function(){ handleThumbErr(this); };
+    p.src = ytThumb(id, 'maxresdefault'); p.style.display='block';
     if (!document.getElementById('f-title').value) autoTitle(id);
   }
 }
