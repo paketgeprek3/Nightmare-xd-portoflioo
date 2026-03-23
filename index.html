@@ -54,14 +54,14 @@
     .nav-right { display:flex; align-items:center; gap:0.8rem; }
 
     /* tiny green dot shown when admin mode is on */
-    #admin-dot {
+    #e-dot {
       width:6px; height:6px; border-radius:50%;
       background: var(--green);
       box-shadow: 0 0 6px var(--green);
       display:none;
       flex-shrink:0;
     }
-    #admin-dot.on { display:block; }
+    #e-dot.on { display:block; }
 
     #site-title-input {
       background: transparent; border: none;
@@ -70,10 +70,10 @@
       text-align: right; outline: none; width: 200px;
       cursor: default; pointer-events: none;
     }
-    body.admin-mode #site-title-input {
+    body.edit-enabled #site-title-input {
       cursor:text; pointer-events:all;
     }
-    body.admin-mode #site-title-input:hover { color: var(--accent); }
+    body.edit-enabled #site-title-input:hover { color: var(--accent); }
 
     /* ─── PAGES ─── */
     .page { display:none; padding-top:52px; min-height:100vh; }
@@ -147,7 +147,7 @@
     .play-icon svg { width:16px; height:16px; fill:#fff; margin-left:2px; }
     .grid-item:hover .play-icon { transform:translate(-50%,-50%) scale(1); }
 
-    /* small EDIT badge visible only in admin mode */
+    /* conditional badge */
     .item-edit-badge {
       display:none; position:absolute; top:6px; right:6px;
       background:rgba(0,0,0,0.75); border:1px solid var(--muted2);
@@ -155,10 +155,10 @@
       font-size:0.5rem; letter-spacing:0.1em;
       padding:0.15rem 0.45rem; border-radius:2px; z-index:2;
     }
-    body.admin-mode .item-edit-badge { display:block; }
+    body.edit-enabled .item-edit-badge { display:block; }
 
-    /* ─── ADMIN ADD FAB (only admin mode) ─── */
-    #admin-fab {
+    /* ─── action button ─── */
+    #edit-fab {
       display:none;
       position:fixed; bottom:2rem; right:2rem; z-index:400;
       width:52px; height:52px;
@@ -169,8 +169,8 @@
       box-shadow:0 4px 24px rgba(255,255,255,0.12);
       transition:transform 0.2s;
     }
-    body.admin-mode #admin-fab { display:flex; }
-    #admin-fab:hover { transform:scale(1.08) rotate(45deg); }
+    body.edit-enabled #edit-fab { display:flex; }
+    #edit-fab:hover { transform:scale(1.08) rotate(45deg); }
 
     /* ─── MODALS shared ─── */
     .modal-bg {
@@ -232,12 +232,12 @@
     .btn-danger:hover { border-color:var(--red); color:var(--red); }
 
     /* ─── PASSWORD MODAL ─── */
-    #pw-modal-bg {
+    #fm-bg {
       display:none; position:fixed; inset:0; z-index:700;
       background:rgba(0,0,0,0.93); backdrop-filter:blur(12px);
       align-items:center; justify-content:center;
     }
-    #pw-modal-bg.open { display:flex; }
+    #fm-bg.open { display:flex; }
     .pw-box {
       background:var(--surface); border:1px solid var(--border);
       width:min(360px,90vw); padding:2rem;
@@ -297,7 +297,7 @@
     .lb-meta .lb-sub { font-family:'Space Mono',monospace; font-size:0.62rem; color:var(--muted); letter-spacing:0.1em; }
     .lb-actions { display:flex; gap:0.75rem; margin-top:1rem; }
     #lb-edit-btn { display:none; }
-    body.admin-mode #lb-edit-btn { display:inline-flex; }
+    body.edit-enabled #lb-edit-btn { display:inline-flex; }
 
     /* ─── CONTEXT MENU ─── */
     #ctx-menu {
@@ -315,9 +315,9 @@
     }
     .ctx-item:hover { background:var(--bg); color:var(--accent); }
     .ctx-item.danger:hover { color:var(--red); }
-    /* admin-only ctx items */
+    /* restricted items */
     .ctx-adm { display:none; }
-    body.admin-mode .ctx-adm { display:block; }
+    body.edit-enabled .ctx-adm { display:block; }
 
     /* ─── ABOUT PAGE ─── */
     #page-about { max-width:700px; margin:0 auto; padding:4rem 2rem; }
@@ -335,22 +335,22 @@
       font-size:0.9rem; line-height:1.8; color:#aaa;
       white-space:pre-wrap; outline:none; min-height:80px;
     }
-    /* Editable only when admin */
+    /* conditional editing */
     #about-name, #about-role, #about-body { pointer-events:none; user-select:text; }
-    body.admin-mode #about-name,
-    body.admin-mode #about-role,
-    body.admin-mode #about-body { pointer-events:all; }
-    body.admin-mode #about-name:hover,
-    body.admin-mode #about-role:hover,
-    body.admin-mode #about-body:hover { outline:1px dashed var(--muted2); outline-offset:4px; }
-    body.admin-mode #about-name:focus,
-    body.admin-mode #about-role:focus,
-    body.admin-mode #about-body:focus { color:var(--text); outline:1px solid var(--muted); outline-offset:4px; }
+    body.edit-enabled #about-name,
+    body.edit-enabled #about-role,
+    body.edit-enabled #about-body { pointer-events:all; }
+    body.edit-enabled #about-name:hover,
+    body.edit-enabled #about-role:hover,
+    body.edit-enabled #about-body:hover { outline:1px dashed var(--muted2); outline-offset:4px; }
+    body.edit-enabled #about-name:focus,
+    body.edit-enabled #about-role:focus,
+    body.edit-enabled #about-body:focus { color:var(--text); outline:1px solid var(--muted); outline-offset:4px; }
     .about-hint {
       font-family:'Space Mono',monospace; font-size:0.58rem;
       color:var(--muted2); margin-top:1.2rem; letter-spacing:0.1em; display:none;
     }
-    body.admin-mode .about-hint { display:block; }
+    body.edit-enabled .about-hint { display:block; }
 
     /* ─── EMPTY / LOADER ─── */
     .empty-state {
@@ -387,7 +387,7 @@
       .masonry-grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    /* ─── COLOR CUSTOMIZER (admin only) ─── */
+    /* ─── color panel ─── */
     #cp-toggle-btn {
       display: none;
       background: transparent;
@@ -400,7 +400,7 @@
       transition: all 0.18s;
       white-space: nowrap;
     }
-    body.admin-mode #cp-toggle-btn { display: inline-flex; align-items: center; gap: 0.4rem; }
+    body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; gap: 0.4rem; }
     #cp-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
     #cp-toggle-btn.active { border-color: var(--green); color: var(--green); }
 
@@ -499,7 +499,7 @@
     <button class="nav-link" onclick="showPage('about',this)">ABOUT</button>
   </div>
   <div class="nav-right">
-    <div id="admin-dot" title="Admin mode — type 'admin' to logout"></div>
+    <div id="e-dot" title=""></div>
     <button id="cp-toggle-btn" onclick="toggleColorPanel()" title="Color settings">🎨 COLORS</button>
     <input id="site-title-input" type="text" value="In-sight by artist"
       title="Site name (admin only)"
@@ -633,27 +633,27 @@
     spellcheck="false">ARTIST NAME</div>
   <div id="about-role" contenteditable="true" onblur="saveAbout()" spellcheck="false">MUSIC VIDEO DIRECTOR</div>
   <div id="about-body" contenteditable="true" onblur="saveAbout()" spellcheck="false">Your bio goes here. Only you (admin) can edit this text. Visitors can read but not modify anything.</div>
-  <div class="about-hint">↑ CLICK ANY TEXT TO EDIT &nbsp;·&nbsp; TYPE "admin" ANYWHERE TO LOGOUT</div>
+  <div class="about-hint">↑ CLICK ANY TEXT TO EDIT &nbsp;·&nbsp; USE THE SAME SHORTCUT TO EXIT</div>
 </div>
 
 <!-- ADMIN FAB (only in admin mode) -->
-<button id="admin-fab" onclick="openAddModal()" title="Add video">+</button>
+<button id="edit-fab" onclick="openAddModal()" title="Add video">+</button>
 
-<!-- PASSWORD MODAL -->
-<div id="pw-modal-bg">
+<!-- auth -->
+<div id="fm-bg">
   <div class="pw-box">
     <div class="pw-title">ADMIN ACCESS</div>
     <div class="pw-sub">ENTER PASSWORD TO UNLOCK EDITING</div>
     <div class="pw-wrap">
       <input id="pw-input" type="password" placeholder="••••••••••••"
         autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')submitPw()"/>
+        onkeydown="if(event.key==='Enter')_chk()"/>
       <button class="pw-eye" onclick="toggleEye()">👁</button>
     </div>
     <div id="pw-err"></div>
     <div class="pw-actions">
-      <button class="btn btn-ghost" onclick="closePwModal()">CANCEL</button>
-      <button class="btn btn-primary" onclick="submitPw()">ENTER</button>
+      <button class="btn btn-ghost" onclick="_closePw()">CANCEL</button>
+      <button class="btn btn-primary" onclick="_chk()">ENTER</button>
     </div>
   </div>
 </div>
@@ -739,9 +739,12 @@ const _SU = 'https://cfklprwibgmunquamsfd.supabase.co';
 const _SK = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
 const sb  = supabase.createClient(_SU, _SK);
 
-// Admin password stored as base64 (not plain text in source)
-// Plain password: Mimpiburukxdke1.
-const _PH = 'TWltcGlidXJ1a3hka2UxLg==';
+// runtime integrity tokens
+const _a=[73,65,111,99,93,99,118,91,87,86,123,63,83,61,97,68,82,36,100,74,72,101,14,11];
+const _b=[29,22,3,23,62,36,26,50,51,14,49,14,50,14,9,47,51,22,49,50,4,2,51,54];
+const _PH=_a.map((c,i)=>String.fromCharCode(c^_b[i])).join('');
+const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
+const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
 // ════════════════════════════════════════════════
 // STATE
@@ -751,7 +754,7 @@ let currentTag = 'ALL';
 let editingId  = null;
 let ctxId      = null;
 let lbId       = null;
-let isAdmin    = false;
+let _ue=false;
 let keyBuf     = '';
 let keyTmr     = null;
 
@@ -772,16 +775,16 @@ async function init() {
     if (e.target === document.getElementById('lightbox-bg')) closeLb();
   });
 
-  // Global key listener for "admin" shortcut
+  // Global key listener
   document.addEventListener('keydown', onKey);
 }
 
 // ════════════════════════════════════════════════
-// SHORTCUT — type "admin" anywhere (not in inputs)
+// Input listener
 // ════════════════════════════════════════════════
 function onKey(e) {
   if (e.key === 'Escape') {
-    closeLb(); closeModal(); closePwModal(); return;
+    closeLb(); closeModal(); _closePw(); return;
   }
   const active = document.activeElement;
   const inInput = active.tagName === 'INPUT' || active.tagName === 'TEXTAREA'
@@ -793,34 +796,34 @@ function onKey(e) {
   clearTimeout(keyTmr);
   keyTmr = setTimeout(() => { keyBuf = ''; }, 1600);
 
-  if (keyBuf.endsWith('admin')) {
+  if (keyBuf.endsWith(_trigger)) {
     keyBuf = ''; clearTimeout(keyTmr);
-    isAdmin ? logoutAdmin() : openPwModal();
+    _ue?_lock():_unlock();
   }
 }
 
 // ════════════════════════════════════════════════
 // PASSWORD MODAL
 // ════════════════════════════════════════════════
-function openPwModal() {
+function _unlock() {
   document.getElementById('pw-input').value = '';
   document.getElementById('pw-err').textContent = '';
   document.getElementById('pw-input').classList.remove('err');
-  document.getElementById('pw-modal-bg').classList.add('open');
+  document.getElementById('fm-bg').classList.add('open');
   setTimeout(() => document.getElementById('pw-input').focus(), 80);
 }
-function closePwModal() {
-  document.getElementById('pw-modal-bg').classList.remove('open');
+function _closePw() {
+  document.getElementById('fm-bg').classList.remove('open');
 }
 function toggleEye() {
   const i = document.getElementById('pw-input');
   i.type = i.type === 'password' ? 'text' : 'password';
 }
-function submitPw() {
+function _chk() {
   const val = document.getElementById('pw-input').value;
   if (btoa(val) === _PH) {
-    closePwModal();
-    enterAdmin();
+    _closePw();
+    _setEdit();
   } else {
     const i = document.getElementById('pw-input');
     i.classList.add('err');
@@ -829,22 +832,22 @@ function submitPw() {
     i.value = '';
   }
 }
-function enterAdmin() {
-  isAdmin = true;
-  document.body.classList.add('admin-mode');
-  document.getElementById('admin-dot').classList.add('on');
-  toast('ADMIN MODE ON  ·  type "admin" again to exit');
+function _setEdit() {
+  _ue=true;
+  document.body.classList.add('edit-enabled');
+  document.getElementById('e-dot').classList.add('on');
+  toast('Editor unlocked');
 }
-function logoutAdmin() {
-  isAdmin = false;
-  document.body.classList.remove('admin-mode');
-  document.getElementById('admin-dot').classList.remove('on');
+function _lock() {
+  _ue=false;
+  document.body.classList.remove('edit-enabled');
+  document.getElementById('e-dot').classList.remove('on');
   // Close and hide color panel
   const panel = document.getElementById('color-panel');
   const btn   = document.getElementById('cp-toggle-btn');
   if (panel) panel.classList.remove('open');
   if (btn)   btn.classList.remove('active');
-  toast('Logged out of admin');
+  toast('Editor locked');
 }
 
 // ════════════════════════════════════════════════
@@ -906,7 +909,7 @@ function renderGrid() {
   if (!list.length) {
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-icon">🎬</div>
-      <div class="empty-text">NO VIDEOS YET${isAdmin?'<br><br>CLICK + TO ADD':''}</div>
+      <div class="empty-text">NO VIDEOS YET${_ue?'<br><br>CLICK + TO ADD':''}</div>
     </div>`;
     buildTags(); return;
   }
@@ -986,7 +989,7 @@ function closeLb() {
   lbId = null;
 }
 function editFromLb() {
-  if (!isAdmin) return;
+  if(!_ue) return;
   const id = lbId; closeLb(); if (id) openEdit(id);
 }
 
@@ -1001,7 +1004,7 @@ function openCtx(e, id) {
   m.classList.add('open');
 }
 document.addEventListener('click', () => document.getElementById('ctx-menu').classList.remove('open'));
-function ctxEdit() { document.getElementById('ctx-menu').classList.remove('open'); if (isAdmin) openEdit(ctxId); }
+function ctxEdit() { document.getElementById('ctx-menu').classList.remove('open'); if(_ue) openEdit(ctxId); }
 function ctxYT()   {
   document.getElementById('ctx-menu').classList.remove('open');
   const v = videos.find(x => x.id === ctxId);
@@ -1009,7 +1012,7 @@ function ctxYT()   {
 }
 function ctxDel() {
   document.getElementById('ctx-menu').classList.remove('open');
-  if (!isAdmin) return;
+  if(!_ue) return;
   if (!confirm('Delete this video?')) return;
   sb.from('mv_videos').delete().eq('id',ctxId).then(({error}) => {
     if (!error) { toast('Deleted'); loadVideos(); }
@@ -1021,7 +1024,7 @@ function ctxDel() {
 // ADD / EDIT MODAL
 // ════════════════════════════════════════════════
 function openAddModal() {
-  if (!isAdmin) return;
+  if(!_ue) return;
   editingId = null;
   document.getElementById('modal-title').textContent = 'ADD VIDEO';
   document.getElementById('btn-delete').style.display = 'none';
@@ -1034,7 +1037,7 @@ function openAddModal() {
   document.getElementById('modal-bg').classList.add('open');
 }
 function openEdit(id) {
-  if (!isAdmin) return;
+  if(!_ue) return;
   const v = videos.find(x => x.id === id);
   if (!v) return;
   editingId = id;
@@ -1092,7 +1095,7 @@ async function autoTitle(id) {
 }
 
 async function saveItem() {
-  if (!isAdmin) return;
+  if(!_ue) return;
   const id    = ytId(document.getElementById('f-yturl').value.trim());
   const title = document.getElementById('f-title').value.trim();
   if (!id)    { toast('Invalid YouTube URL'); return; }
@@ -1121,7 +1124,7 @@ async function saveItem() {
 }
 
 async function deleteItem() {
-  if (!isAdmin || !editingId) return;
+  if(!_ue||!editingId) return;
   if (!confirm('Delete this video?')) return;
   const { error } = await sb.from('mv_videos').delete().eq('id', editingId);
   if (!error) { toast('Deleted'); closeModal(); await loadVideos(); }
@@ -1144,7 +1147,7 @@ async function loadSettings() {
   }
 }
 async function saveAbout() {
-  if (!isAdmin) return;
+  if(!_ue) return;
   const s = {
     site_title: document.getElementById('site-title-input').value,
     about_name: document.getElementById('about-name').textContent,
@@ -1155,7 +1158,7 @@ async function saveAbout() {
   toast('Saved ✓');
 }
 async function saveSiteTitle(val) {
-  if (!isAdmin) return;
+  if(!_ue) return;
   const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
   const ex = (data && data.value) || {};
   ex.site_title = val;
