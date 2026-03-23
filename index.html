@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MV Portfolio</title>
+  <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
@@ -576,6 +577,37 @@
   </div>
 
   <div class="cp-divider"></div>
+  <div class="cp-title" style="margin-bottom:0.6rem">SITE ICON <span style="color:var(--muted);font-size:0.5rem">TAB FAVICON</span></div>
+
+  <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem">
+    <div id="favicon-preview" style="width:32px;height:32px;border:1px solid var(--border);border-radius:4px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🌐</div>
+    <div style="font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--muted);line-height:1.6">Current favicon<br>shown in tab</div>
+  </div>
+
+  <div style="margin-bottom:0.5rem">
+    <label class="cp-label" style="margin-bottom:0.4rem;display:block">Upload Image File</label>
+    <label style="display:block;width:100%;padding:0.45rem;border:1px dashed var(--border);border-radius:2px;font-family:Space Mono,monospace;font-size:0.58rem;letter-spacing:.1em;color:var(--muted);text-align:center;cursor:pointer;transition:all .18s" 
+      onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
+      onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+      📁 CHOOSE FILE
+      <input type="file" accept="image/*" style="display:none" onchange="handleFaviconFile(this)"/>
+    </label>
+  </div>
+
+  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem">
+    <label class="cp-label">Or paste image URL</label>
+    <div style="display:flex;gap:0.4rem">
+      <input type="text" id="favicon-url-input" class="form-input" 
+        style="font-size:0.65rem;padding:0.4rem 0.6rem"
+        placeholder="https://i.imgur.com/xxx.png"/>
+      <button onclick="applyFaviconUrl()" 
+        style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:Space Mono,monospace;font-size:0.58rem;padding:0 0.6rem;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all .18s"
+        onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'"
+        onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">SET</button>
+    </div>
+  </div>
+
+  <div class="cp-divider"></div>
   <button class="cp-save" onclick="saveColors()">SAVE COLORS</button>
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
 </div>
@@ -1108,6 +1140,7 @@ async function loadSettings() {
     if (s.about_role) document.getElementById('about-role').textContent = s.about_role;
     if (s.about_body) document.getElementById('about-body').textContent = s.about_body;
     if (s.colors) loadColors(s.colors);
+    if (s.favicon) loadFavicon(s.favicon);
   }
 }
 async function saveAbout() {
@@ -1344,6 +1377,82 @@ function loadColors(colors) {
       }
     }
   });
+}
+
+
+// ════════════════════════════════════════════════
+// FAVICON CUSTOMIZER
+// ════════════════════════════════════════════════
+function setFavicon(dataUrl) {
+  // Update the <link> tag
+  let link = document.getElementById('favicon-link');
+  link.href = dataUrl;
+
+  // Update preview in panel
+  const prev = document.getElementById('favicon-preview');
+  if (prev) {
+    prev.innerHTML = `<img src="${dataUrl}" style="width:28px;height:28px;object-fit:cover;border-radius:3px"/>`;
+  }
+}
+
+function handleFaviconFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('Please select an image file'); return; }
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    setFavicon(dataUrl);
+    await saveFavicon(dataUrl);
+    toast('Favicon updated ✓');
+  };
+  reader.readAsDataURL(file);
+}
+
+async function applyFaviconUrl() {
+  const url = document.getElementById('favicon-url-input').value.trim();
+  if (!url) { toast('Please enter an image URL'); return; }
+
+  // Convert URL to base64 via canvas to avoid CORS issues when saving
+  try {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = async () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 64; canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 64, 64);
+      const dataUrl = canvas.toDataURL('image/png');
+      setFavicon(dataUrl);
+      await saveFavicon(dataUrl);
+      toast('Favicon updated ✓');
+    };
+    img.onerror = () => {
+      // If CORS fails, use the URL directly without saving as base64
+      setFavicon(url);
+      saveFavicon(url);
+      toast('Favicon set ✓ (direct URL)');
+    };
+    img.src = url;
+  } catch(e) {
+    setFavicon(url);
+    await saveFavicon(url);
+    toast('Favicon set ✓');
+  }
+}
+
+async function saveFavicon(dataUrl) {
+  const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
+  const ex = (data && data.value) || {};
+  ex.favicon = dataUrl;
+  const { error } = await sb.from('mv_settings').upsert({ key:'site', value: ex });
+  if (error) toast('Error saving favicon');
+}
+
+function loadFavicon(dataUrl) {
+  if (!dataUrl) return;
+  setFavicon(dataUrl);
 }
 
 // ════════════════════════════════════════════════
