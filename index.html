@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="id" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    * { font-family: 'Outfit', sans-serif; }
+    html, body { height: 100%; }
+    
+    .video-item {
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .video-item:hover {
+      transform: translateY(-4px);
+    }
+    .video-item:hover .play-overlay {
+      opacity: 1;
+    }
+    .play-overlay {
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .modal-backdrop {
+      backdrop-filter: blur(8px);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="h-full bg-white text-black overflow-auto">
+  <div id="app" class="h-full w-full flex flex-col">
+   <!-- Header -->
+   <header class="sticky top-0 z-40 bg-white border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+     <h1 class="text-xl font-bold" id="site-title">PORTFOLIO</h1>
+     <div class="flex items-center gap-6">
+      <a href="#contact" class="text-sm text-gray-600 hover:text-black transition-colors">Contact</a> <button id="add-video-btn" class="flex items-center gap-2 bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 transition-colors"> <i data-lucide="plus" class="w-4 h-4"></i> Add </button>
+     </div>
+    </div>
+   </header><!-- Main Content -->
+   <main class="flex-1 overflow-auto">
+    <!-- Hero/Title Section -->
+    <section class="max-w-7xl mx-auto px-6 py-12">
+     <div class="mb-12">
+      <h2 class="text-5xl md:text-6xl font-bold mb-4" id="hero-title">Work</h2>
+      <p class="text-gray-600 text-lg max-w-2xl" id="hero-description">Transforming music into cinematic experiences</p>
+     </div>
+    </section><!-- Videos Grid -->
+    <section class="max-w-7xl mx-auto px-6 pb-24">
+     <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Videos will be rendered here -->
+     </div><!-- Empty State -->
+     <div id="empty-state" class="hidden text-center py-20">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
+       <i data-lucide="video" class="w-8 h-8 text-gray-400"></i>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-800 mb-2">Belum ada video</h3>
+      <p class="text-gray-500">Klik tombol "Add" untuk menambahkan karya pertamamu</p>
+     </div>
+    </section><!-- Contact Section -->
+    <section id="contact" class="max-w-7xl mx-auto px-6 py-24 border-t border-gray-200">
+     <div class="mb-8">
+      <h3 class="text-2xl font-bold mb-2">Contact</h3>
+      <p class="text-gray-600">Feel free to contact me</p>
+     </div>
+     <div class="flex flex-col sm:flex-row gap-6">
+      <a href="https://x.com/Abdullahhahaha2" target="_blank" rel="noopener noreferrer" id="contact-twitter-link" class="text-gray-900 hover:text-gray-600 transition-colors font-medium"> <span id="contact-twitter-text">Twitter | X</span> </a>
+     </div>
+    </section>
+   </main><!-- Add/Edit Video Modal --> <!-- Add/Edit Video Modal -->
+   <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/50">
+    <div class="bg-white rounded-lg w-full max-w-lg border border-gray-200 shadow-xl">
+     <div class="p-6 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-bold text-lg" id="modal-title">Add Video</h3><button id="close-modal" class="text-gray-400 hover:text-black transition-colors"> <i data-lucide="x" class="w-6 h-6"></i> </button>
+     </div>
+     <form id="video-form" class="p-6 space-y-4">
+      <input type="hidden" id="video-id">
+      <div>
+       <label class="block text-sm font-medium text-gray-900 mb-1">Video Title *</label> <input type="text" id="video-title" required class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="Song name or project title">
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-900 mb-1">Artist / Client</label> <input type="text" id="video-artist" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="Artist or client name">
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-900 mb-1">YouTube Link *</label> <input type="url" id="video-url" required class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="https://youtube.com/watch?v=...">
+       <p class="text-xs text-gray-500 mt-1">Thumbnail otomatis dari YouTube</p>
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-900 mb-1">Custom Thumbnail (optional)</label> <input type="url" id="video-thumbnail" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="https://example.com/thumb.jpg">
+      </div>
+      <div>
+       <label class="block text-sm font-medium text-gray-900 mb-1">Year</label> <input type="text" id="video-year" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="2024">
+      </div>
+      <div class="flex gap-3 pt-2">
+       <button type="button" id="cancel-btn" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded font-medium hover:bg-gray-300 transition-colors"> Cancel </button> <button type="submit" class="flex-1 bg-black text-white px-4 py-2 rounded font-medium hover:bg-gray-800 transition-colors"> Save </button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Video Player Modal -->
+   <div id="player-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/90">
+    <div class="w-full max-w-5xl">
+     <div class="flex justify-end mb-4">
+      <button id="close-player" class="text-white hover:text-gray-300 transition-colors"> <i data-lucide="x" class="w-8 h-8"></i> </button>
+     </div>
+     <div class="relative aspect-video bg-black rounded overflow-hidden">
+      <iframe id="video-iframe" class="absolute inset-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+     </div>
+    </div>
+   </div><!-- Delete Confirmation -->
+   <div id="delete-confirm" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/50">
+    <div class="bg-white rounded-lg w-full max-w-sm border border-gray-200 shadow-xl p-6 text-center">
+     <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+      <i data-lucide="trash-2" class="w-6 h-6 text-red-600"></i>
+     </div>
+     <h3 class="font-bold text-lg mb-2">Delete Video?</h3>
+     <p class="text-gray-600 mb-6">This video will be removed from your portfolio.</p>
+     <div class="flex gap-3">
+      <button id="cancel-delete" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded font-medium hover:bg-gray-300 transition-colors"> Cancel </button> <button id="confirm-delete" class="flex-1 bg-red-600 text-white px-4 py-2 rounded font-medium hover:bg-red-700 transition-colors"> Delete </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // ✅ Supabase credentials sudah ter-setup!
+    const SUPABASE_URL = 'https://cfklprwibgmunquamsfad.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNma2xwcndpYmdtdW5xdWFtc2ZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDM1MDAsImV4cCI6MjA4OTc3OTUwMH0.wyksHBxGJNgmBl4ViO5rr2G1n-0kDa2KtSck8ACAuTk';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Default configuration
+    const defaultConfig = {
+      site_title: 'PORTFOLIO',
+      hero_description: 'Transforming music into cinematic experiences'
+    };
+
+    // Videos data storage
+    let videos = [];
+    let videoToDelete = null;
+    let isLoading = false;
+
+    // Extract YouTube video ID
+    function getYouTubeId(url) {
+      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]{11})/);
+      return match ? match[1] : null;
+    }
+
+    // Get YouTube thumbnail
+    function getYouTubeThumbnail(url, customThumbnail) {
+      if (customThumbnail) return customThumbnail;
+      const videoId = getYouTubeId(url);
+      return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
+    }
+
+    // Render video card
+    function createVideoCard(video) {
+      const thumbnail = getYouTubeThumbnail(video.url, video.thumbnail);
+      const card = document.createElement('div');
+      card.className = 'video-item group';
+      card.dataset.videoId = video.id;
+      card.innerHTML = `
+        <div class="aspect-video bg-gray-200 rounded overflow-hidden relative mb-3">
+          <img src="${thumbnail}" alt="${video.title}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" loading="lazy">
+          <div class="absolute inset-0 bg-gray-200 items-center justify-center hidden">
+            <i data-lucide="video" class="w-12 h-12 text-gray-400"></i>
+          </div>
+          <div class="play-overlay absolute inset-0 bg-black/30 flex items-center justify-center">
+            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center">
+              <i data-lucide="play" class="w-5 h-5 text-black ml-1"></i>
+            </div>
+          </div>
+          <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+            <button class="edit-btn w-8 h-8 rounded bg-white/90 flex items-center justify-center text-black hover:bg-white transition-colors" onclick="event.stopPropagation(); editVideo('${video.id}')">
+              <i data-lucide="edit-2" class="w-4 h-4"></i>
+            </button>
+            <button class="delete-btn w-8 h-8 rounded bg-red-500/90 flex items-center justify-center text-white hover:bg-red-600 transition-colors" onclick="event.stopPropagation(); showDeleteConfirm('${video.id}')">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+        <h3 class="font-semibold text-gray-900">${video.title}</h3>
+        <p class="text-sm text-gray-600">${video.artist || ''}${video.artist && video.year ? ' • ' : ''}${video.year || ''}</p>
+      `;
+      card.addEventListener('click', () => playVideo(video));
+      return card;
+    }
+
+    // Render all videos
+    function renderVideos() {
+      const grid = document.getElementById('video-grid');
+      const emptyState = document.getElementById('empty-state');
+      
+      grid.innerHTML = '';
+      
+      if (videos.length === 0) {
+        emptyState.classList.remove('hidden');
+        grid.classList.add('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        grid.classList.remove('hidden');
+        videos.forEach(video => {
+          grid.appendChild(createVideoCard(video));
+        });
+      }
+      
+      lucide.createIcons();
+    }
+
+    // Modal functions
+    function openModal(isEdit = false) {
+      const modal = document.getElementById('video-modal');
+      const title = document.getElementById('modal-title');
+      title.textContent = isEdit ? 'Edit Video' : 'Add Video';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('video-modal');
+      const form = document.getElementById('video-form');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      form.reset();
+      document.getElementById('video-id').value = '';
+    }
+
+    // Edit video
+    function editVideo(id) {
+      const video = videos.find(v => v.id === id);
+      if (!video) return;
+      
+      document.getElementById('video-id').value = video.id;
+      document.getElementById('video-title').value = video.title;
+      document.getElementById('video-artist').value = video.artist || '';
+      document.getElementById('video-url').value = video.url;
+      document.getElementById('video-thumbnail').value = video.thumbnail || '';
+      document.getElementById('video-year').value = video.year || '';
+      
+      openModal(true);
+    }
+
+    // Delete confirmation
+    function showDeleteConfirm(id) {
+      videoToDelete = id;
+      const modal = document.getElementById('delete-confirm');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function hideDeleteConfirm() {
+      videoToDelete = null;
+      const modal = document.getElementById('delete-confirm');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function confirmDelete() {
+      if (videoToDelete) {
+        isLoading = true;
+        const { error } = await supabase
+          .from('videos')
+          .delete()
+          .eq('id', videoToDelete);
+        
+        if (error) {
+          alert('Error deleting video: ' + error.message);
+        } else {
+          loadVideos();
+        }
+        isLoading = false;
+      }
+      hideDeleteConfirm();
+    }
+
+    // Play video
+    function playVideo(video) {
+      const modal = document.getElementById('player-modal');
+      const iframe = document.getElementById('video-iframe');
+      
+      const videoId = getYouTubeId(video.url);
+      if (videoId) {
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        window.open(video.url, '_blank');
+      }
+    }
+
+    function closePlayer() {
+      const modal = document.getElementById('player-modal');
+      const iframe = document.getElementById('video-iframe');
+      iframe.src = '';
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // Load videos from Supabase
+    async function loadVideos() {
+      try {
+        const { data, error } = await supabase
+          .from('videos')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        videos = data || [];
+        renderVideos();
+      } catch (error) {
+        console.error('Error loading videos:', error.message);
+      }
+    }
+
+    // Form submission
+    document.getElementById('video-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      if (isLoading) return;
+      
+      const id = document.getElementById('video-id').value;
+      const videoData = {
+        title: document.getElementById('video-title').value,
+        artist: document.getElementById('video-artist').value,
+        url: document.getElementById('video-url').value,
+        thumbnail: document.getElementById('video-thumbnail').value,
+        year: document.getElementById('video-year').value
+      };
+      
+      isLoading = true;
+      
+      try {
+        if (id) {
+          // Update existing
+          const { error } = await supabase
+            .from('videos')
+            .update(videoData)
+            .eq('id', id);
+          
+          if (error) throw error;
+        } else {
+          // Create new
+          const { error } = await supabase
+            .from('videos')
+            .insert([videoData]);
+          
+          if (error) throw error;
+        }
+        
+        loadVideos();
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+      
+      isLoading = false;
+      closeModal();
+    });
+
+    // Event listeners
+    document.getElementById('add-video-btn').addEventListener('click', () => openModal(false));
+    document.getElementById('close-modal').addEventListener('click', closeModal);
+    document.getElementById('cancel-btn').addEventListener('click', closeModal);
+    document.getElementById('close-player').addEventListener('click', closePlayer);
+    document.getElementById('cancel-delete').addEventListener('click', hideDeleteConfirm);
+    document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+
+    // Close modals on backdrop click
+    document.getElementById('video-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+    document.getElementById('player-modal').addEventListener('click', function(e) {
+      if (e.target === this) closePlayer();
+    });
+    document.getElementById('delete-confirm').addEventListener('click', function(e) {
+      if (e.target === this) hideDeleteConfirm();
+    });
+
+    // Element SDK integration
+    async function onConfigChange(config) {
+      const c = { ...defaultConfig, ...config };
+      
+      document.getElementById('site-title').textContent = c.site_title;
+      document.getElementById('hero-title').textContent = 'Work';
+      document.getElementById('hero-description').textContent = c.hero_description;
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [],
+        borderables: [],
+        fontEditable: undefined,
+        fontSizeable: undefined
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      const c = { ...defaultConfig, ...config };
+      return new Map([
+        ['site_title', c.site_title],
+        ['hero_description', c.hero_description]
+      ]);
+    }
+
+    // Initialize
+    loadVideos();
+    lucide.createIcons();
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities,
+        mapToEditPanelValues
+      });
+    }
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e09a186553dff91',t:'MTc3NDIyOTAwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
