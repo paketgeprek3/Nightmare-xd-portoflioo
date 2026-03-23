@@ -1,423 +1,1315 @@
-<!doctype html>
-<html lang="id" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portfolio</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <script src="/_sdk/element_sdk.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MV Portfolio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
-    * { font-family: 'Outfit', sans-serif; }
-    html, body { height: 100%; }
-    
-    .video-item {
-      transition: all 0.3s ease;
+    :root {
+      --bg: #0a0a0a;
+      --nav: rgba(10,10,10,0.95);
+      --surface: #111;
+      --border: #222;
+      --accent: #fff;
+      --muted: #555;
+      --muted2: #333;
+      --text: #e8e8e8;
+      --red: #e03;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans JP', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width:3px; }
+    ::-webkit-scrollbar-track { background:var(--bg); }
+    ::-webkit-scrollbar-thumb { background:var(--muted2); }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top:0; left:0; right:0; z-index:500;
+      display: flex; align-items:center; justify-content:space-between;
+      padding: 0 2.5rem;
+      height: 52px;
+      background: var(--nav);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-left { display:flex; gap:2rem; align-items:center; }
+    .nav-link {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-decoration: none;
+      text-transform: uppercase;
       cursor: pointer;
+      transition: color 0.2s;
+      background: none; border: none;
     }
-    .video-item:hover {
-      transform: translateY(-4px);
+    .nav-link:hover, .nav-link.active { color: var(--accent); }
+    .nav-right {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
     }
-    .video-item:hover .play-overlay {
-      opacity: 1;
+    #site-title-input {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-align: right;
+      cursor: text;
+      outline: none;
+      width: 180px;
     }
-    .play-overlay {
+    #site-title-input:hover { color: var(--accent); }
+
+    /* ─── PAGES ─── */
+    .page { display:none; padding-top: 52px; min-height:100vh; }
+    .page.active { display:block; }
+
+    /* ─── WORKS PAGE ─── */
+    #page-works { padding-top:52px; }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex; gap:0.5rem; align-items:center; flex-wrap:wrap;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.6);
+      position: sticky; top:52px; z-index:100;
+    }
+    .filter-tag {
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-radius: 2px;
+    }
+    .filter-tag:hover, .filter-tag.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .filter-sep { width:1px; height:20px; background:var(--border); margin:0 0.25rem; }
+
+    /* Masonry grid */
+    .grid-wrap { padding: 2px; }
+    .masonry-grid {
+      columns: 4 280px;
+      column-gap: 2px;
+    }
+    .grid-item {
+      break-inside: avoid;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 2px;
+      cursor: pointer;
+      background: var(--surface);
+      display: block;
+    }
+    .grid-item img {
+      width: 100%;
+      display: block;
+      transition: transform 0.4s ease, filter 0.3s ease;
+      filter: brightness(0.92);
+    }
+    .grid-item:hover img {
+      transform: scale(1.04);
+      filter: brightness(1);
+    }
+    .grid-item-overlay {
+      position: absolute; inset:0;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 50%);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.3s;
+      display: flex; flex-direction:column; justify-content:flex-end;
+      padding: 1rem;
     }
-    .modal-backdrop {
-      backdrop-filter: blur(8px);
+    .grid-item:hover .grid-item-overlay { opacity:1; }
+    .item-title {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: #fff;
+      line-height: 1.4;
+      margin-bottom: 0.25rem;
+    }
+    .item-tags {
+      display: flex; gap:0.3rem; flex-wrap:wrap;
+    }
+    .item-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.1);
+      padding: 0.15rem 0.4rem;
+      border-radius: 2px;
+    }
+    .play-icon {
+      position: absolute; top:50%; left:50%;
+      transform: translate(-50%,-50%) scale(0);
+      width:44px; height:44px;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+      border-radius: 50%;
+      display: flex; align-items:center; justify-content:center;
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .play-icon svg { width:16px; height:16px; fill:#fff; margin-left:2px; }
+    .grid-item:hover .play-icon { transform: translate(-50%,-50%) scale(1); }
+
+    /* ─── ADD BUTTON ─── */
+    .fab {
+      position: fixed; bottom:2rem; right:2rem; z-index:400;
+      width:52px; height:52px;
+      background: var(--accent);
+      color: #000;
+      border: none; border-radius:50%;
+      cursor: pointer;
+      display: flex; align-items:center; justify-content:center;
+      font-size:1.5rem; font-weight:300;
+      box-shadow: 0 4px 24px rgba(255,255,255,0.15);
+      transition: transform 0.2s, background 0.2s;
+    }
+    .fab:hover { transform:scale(1.08) rotate(45deg); }
+
+    /* ─── MODAL (add/edit) ─── */
+    .modal-bg {
+      display:none;
+      position:fixed; inset:0; z-index:600;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(6px);
+      align-items:center; justify-content:center;
+    }
+    .modal-bg.open { display:flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      width: min(520px, 94vw);
+      padding: 2rem;
+      position: relative;
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing:0.12em;
+      margin-bottom:1.5rem;
+    }
+    .modal-close {
+      position:absolute; top:1rem; right:1rem;
+      background:none; border:none;
+      color:var(--muted); font-size:1.2rem;
+      cursor:pointer; line-height:1;
+      transition:color 0.2s;
+    }
+    .modal-close:hover { color:var(--accent); }
+    .form-group { margin-bottom:1rem; }
+    .form-label {
+      display:block;
+      font-family:'Space Mono',monospace;
+      font-size:0.62rem;
+      letter-spacing:0.12em;
+      color:var(--muted);
+      margin-bottom:0.4rem;
+      text-transform:uppercase;
+    }
+    .form-input {
+      width:100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family:'Noto Sans JP',sans-serif;
+      font-size:0.85rem;
+      padding: 0.6rem 0.8rem;
+      outline:none;
+      transition: border-color 0.2s;
+      border-radius:2px;
+    }
+    .form-input:focus { border-color: var(--muted); }
+    .form-hint {
+      font-size:0.65rem;
+      color:var(--muted);
+      margin-top:0.3rem;
+      font-family:'Space Mono',monospace;
+    }
+    .thumb-preview {
+      width:100%; aspect-ratio:16/9;
+      object-fit:cover;
+      background:var(--bg);
+      border:1px solid var(--border);
+      margin-top:0.5rem;
+      display:none;
+    }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
+    .modal-actions { display:flex; gap:0.75rem; margin-top:1.5rem; justify-content:flex-end; }
+    .btn {
+      padding:0.6rem 1.3rem;
+      font-family:'Space Mono',monospace;
+      font-size:0.7rem;
+      letter-spacing:0.08em;
+      cursor:pointer;
+      border:none;
+      border-radius:2px;
+      transition:all 0.18s;
+    }
+    .btn-ghost {
+      background:transparent;
+      border:1px solid var(--border);
+      color:var(--muted);
+    }
+    .btn-ghost:hover { border-color:var(--muted); color:var(--accent); }
+    .btn-primary {
+      background:var(--accent);
+      color:#000;
+      font-weight:700;
+    }
+    .btn-primary:hover { background:#ccc; }
+    .btn-danger {
+      background:transparent;
+      border:1px solid #440;
+      color:#a00;
+    }
+    .btn-danger:hover { border-color:var(--red); color:var(--red); }
+
+    /* ─── VIDEO LIGHTBOX ─── */
+    .lightbox-bg {
+      display:none;
+      position:fixed; inset:0; z-index:700;
+      background: rgba(0,0,0,0.96);
+      align-items:center; justify-content:center;
+      flex-direction:column;
+    }
+    .lightbox-bg.open { display:flex; }
+    .lightbox-close {
+      position:absolute; top:1.2rem; right:1.5rem;
+      background:none; border:none; color:var(--muted);
+      font-size:1.8rem; cursor:pointer;
+      transition:color 0.2s;
+      line-height:1;
+    }
+    .lightbox-close:hover { color:#fff; }
+    .lightbox-iframe-wrap {
+      width: min(900px, 92vw);
+      aspect-ratio:16/9;
+      position:relative;
+    }
+    .lightbox-iframe-wrap iframe {
+      width:100%; height:100%;
+      border:none;
+    }
+    .lightbox-meta {
+      margin-top:1rem;
+      text-align:center;
+    }
+    .lightbox-meta h2 {
+      font-family:'Noto Sans JP',sans-serif;
+      font-weight:400;
+      font-size:1rem;
+      color:#fff;
+      margin-bottom:0.3rem;
+    }
+    .lightbox-meta .sub {
+      font-family:'Space Mono',monospace;
+      font-size:0.65rem;
+      color:var(--muted);
+      letter-spacing:0.1em;
+    }
+    .lightbox-actions {
+      display:flex; gap:0.75rem; margin-top:1rem;
+    }
+
+    /* ─── ABOUT PAGE ─── */
+    #page-about {
+      max-width:700px; margin:0 auto;
+      padding: 4rem 2rem;
+    }
+    .about-header {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:3rem;
+      letter-spacing:0.1em;
+      margin-bottom:0.3rem;
+    }
+    .about-sub {
+      font-family:'Space Mono',monospace;
+      font-size:0.7rem;
+      color:var(--muted);
+      letter-spacing:0.15em;
+      margin-bottom:2rem;
+      text-transform:uppercase;
+    }
+    .about-body {
+      font-size:0.9rem;
+      line-height:1.8;
+      color:#aaa;
+      white-space:pre-wrap;
+      outline:none;
+      min-height:80px;
+    }
+    .about-body[contenteditable]:focus {
+      color:var(--text);
+    }
+    .about-edit-hint {
+      font-family:'Space Mono',monospace;
+      font-size:0.6rem;
+      color:var(--muted2);
+      margin-top:1rem;
+      letter-spacing:0.1em;
+    }
+
+    /* ─── LIVE PAGE ─── */
+    #page-live {
+      max-width:860px; margin:0 auto;
+      padding: 3rem 2rem;
+    }
+    .live-header {
+      font-family:'Bebas Neue',sans-serif;
+      font-size:2.2rem;
+      letter-spacing:0.12em;
+      margin-bottom:0.25rem;
+    }
+    .live-sub {
+      font-family:'Space Mono',monospace;
+      font-size:0.62rem;
+      color:var(--muted);
+      letter-spacing:0.15em;
+      margin-bottom:2rem;
+      text-transform:uppercase;
+    }
+    .live-list { display:flex; flex-direction:column; gap:1px; }
+    .live-item {
+      display:grid;
+      grid-template-columns: 90px 1fr auto;
+      gap:1.5rem; align-items:center;
+      padding:1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .live-date {
+      font-family:'Space Mono',monospace;
+      font-size:0.7rem;
+      color:var(--muted);
+      line-height:1.5;
+      letter-spacing:0.08em;
+    }
+    .live-name { font-size:0.88rem; font-weight:400; }
+    .live-venue {
+      font-size:0.75rem;
+      color:var(--muted);
+      margin-top:0.2rem;
+      font-family:'Space Mono',monospace;
+      font-size:0.62rem;
+      letter-spacing:0.08em;
+    }
+    .live-status {
+      font-family:'Space Mono',monospace;
+      font-size:0.6rem;
+      letter-spacing:0.1em;
+      padding:0.2rem 0.6rem;
+      border-radius:2px;
+    }
+    .live-status.upcoming {
+      border:1px solid var(--accent);
+      color:var(--accent);
+    }
+    .live-status.past {
+      border:1px solid var(--muted2);
+      color:var(--muted);
+    }
+    .live-add-btn {
+      background:none; border:1px dashed var(--border);
+      color:var(--muted);
+      width:100%; padding:0.75rem;
+      font-family:'Space Mono',monospace;
+      font-size:0.65rem;
+      letter-spacing:0.12em;
+      cursor:pointer;
+      margin-top:1rem;
+      transition:all 0.2s;
+      border-radius:2px;
+    }
+    .live-add-btn:hover { border-color:var(--muted); color:var(--accent); }
+
+    /* ─── EMPTY STATE ─── */
+    .empty-state {
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      min-height:60vh;
+      gap:1rem; color:var(--muted);
+      text-align:center;
+    }
+    .empty-icon { font-size:3rem; opacity:0.3; }
+    .empty-text {
+      font-family:'Space Mono',monospace;
+      font-size:0.7rem;
+      letter-spacing:0.15em;
+    }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position:fixed; bottom:5rem; left:50%; transform:translateX(-50%);
+      background:var(--surface);
+      border:1px solid var(--border);
+      color:var(--text);
+      font-family:'Space Mono',monospace;
+      font-size:0.68rem;
+      letter-spacing:0.1em;
+      padding:0.6rem 1.4rem;
+      border-radius:2px;
+      z-index:900;
+      opacity:0;
+      transition:opacity 0.2s;
+      pointer-events:none;
+    }
+    .toast.show { opacity:1; }
+
+    /* ─── LOADING ─── */
+    .loader {
+      display:flex; align-items:center; justify-content:center;
+      min-height:60vh;
+    }
+    .loader-dot {
+      width:6px; height:6px;
+      background:var(--muted);
+      border-radius:50%;
+      margin:0 3px;
+      animation:bounce 1.2s infinite;
+    }
+    .loader-dot:nth-child(2) { animation-delay:0.2s; }
+    .loader-dot:nth-child(3) { animation-delay:0.4s; }
+    @keyframes bounce {
+      0%,80%,100% { transform:translateY(0); opacity:0.4; }
+      40% { transform:translateY(-8px); opacity:1; }
+    }
+
+    /* ─── CONTEXT MENU ─── */
+    .ctx-menu {
+      display:none;
+      position:fixed; z-index:800;
+      background:var(--surface);
+      border:1px solid var(--border);
+      min-width:140px;
+      padding:0.3rem 0;
+      box-shadow:0 8px 24px rgba(0,0,0,0.6);
+    }
+    .ctx-menu.open { display:block; }
+    .ctx-item {
+      display:block; width:100%;
+      background:none; border:none;
+      padding:0.55rem 1rem;
+      font-family:'Space Mono',monospace;
+      font-size:0.65rem;
+      letter-spacing:0.1em;
+      color:var(--muted);
+      cursor:pointer;
+      text-align:left;
+      transition:background 0.15s;
+    }
+    .ctx-item:hover { background:var(--bg); color:var(--accent); }
+    .ctx-item.danger:hover { color:var(--red); }
+
+    /* ─── RESPONSIVE ─── */
+    @media(max-width:768px) {
+      nav { padding:0 1.2rem; }
+      .filter-bar { padding:0.75rem 1rem; }
+      .masonry-grid { columns:2 160px; }
+      .live-item { grid-template-columns:70px 1fr; }
+      .live-status { display:none; }
+    }
+    @media(max-width:480px) {
+      .masonry-grid { columns:2 130px; }
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>body { box-sizing: border-box; }</style>
-  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
- </head>
- <body class="h-full bg-white text-black overflow-auto">
-  <div id="app" class="h-full w-full flex flex-col">
-   <!-- Header -->
-   <header class="sticky top-0 z-40 bg-white border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
-     <h1 class="text-xl font-bold" id="site-title">PORTFOLIO</h1>
-     <div class="flex items-center gap-6">
-      <a href="#contact" class="text-sm text-gray-600 hover:text-black transition-colors">Contact</a> <button id="add-video-btn" class="flex items-center gap-2 bg-black text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800 transition-colors"> <i data-lucide="plus" class="w-4 h-4"></i> Add </button>
-     </div>
-    </div>
-   </header><!-- Main Content -->
-   <main class="flex-1 overflow-auto">
-    <!-- Hero/Title Section -->
-    <section class="max-w-7xl mx-auto px-6 py-12">
-     <div class="mb-12">
-      <h2 class="text-5xl md:text-6xl font-bold mb-4" id="hero-title">Work</h2>
-      <p class="text-gray-600 text-lg max-w-2xl" id="hero-description">Transforming music into cinematic experiences</p>
-     </div>
-    </section><!-- Videos Grid -->
-    <section class="max-w-7xl mx-auto px-6 pb-24">
-     <div id="video-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Videos will be rendered here -->
-     </div><!-- Empty State -->
-     <div id="empty-state" class="hidden text-center py-20">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-200 flex items-center justify-center">
-       <i data-lucide="video" class="w-8 h-8 text-gray-400"></i>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Belum ada video</h3>
-      <p class="text-gray-500">Klik tombol "Add" untuk menambahkan karya pertamamu</p>
-     </div>
-    </section><!-- Contact Section -->
-    <section id="contact" class="max-w-7xl mx-auto px-6 py-24 border-t border-gray-200">
-     <div class="mb-8">
-      <h3 class="text-2xl font-bold mb-2">Contact</h3>
-      <p class="text-gray-600">Feel free to contact me</p>
-     </div>
-     <div class="flex flex-col sm:flex-row gap-6">
-      <a href="https://x.com/Abdullahhahaha2" target="_blank" rel="noopener noreferrer" id="contact-twitter-link" class="text-gray-900 hover:text-gray-600 transition-colors font-medium"> <span id="contact-twitter-text">Twitter | X</span> </a>
-     </div>
-    </section>
-   </main><!-- Add/Edit Video Modal --> <!-- Add/Edit Video Modal -->
-   <div id="video-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/50">
-    <div class="bg-white rounded-lg w-full max-w-lg border border-gray-200 shadow-xl">
-     <div class="p-6 border-b border-gray-200 flex items-center justify-between">
-      <h3 class="font-bold text-lg" id="modal-title">Add Video</h3><button id="close-modal" class="text-gray-400 hover:text-black transition-colors"> <i data-lucide="x" class="w-6 h-6"></i> </button>
-     </div>
-     <form id="video-form" class="p-6 space-y-4">
-      <input type="hidden" id="video-id">
-      <div>
-       <label class="block text-sm font-medium text-gray-900 mb-1">Video Title *</label> <input type="text" id="video-title" required class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="Song name or project title">
-      </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-900 mb-1">Artist / Client</label> <input type="text" id="video-artist" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="Artist or client name">
-      </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-900 mb-1">YouTube Link *</label> <input type="url" id="video-url" required class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="https://youtube.com/watch?v=...">
-       <p class="text-xs text-gray-500 mt-1">Thumbnail otomatis dari YouTube</p>
-      </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-900 mb-1">Custom Thumbnail (optional)</label> <input type="url" id="video-thumbnail" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="https://example.com/thumb.jpg">
-      </div>
-      <div>
-       <label class="block text-sm font-medium text-gray-900 mb-1">Year</label> <input type="text" id="video-year" class="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-black transition-colors" placeholder="2024">
-      </div>
-      <div class="flex gap-3 pt-2">
-       <button type="button" id="cancel-btn" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded font-medium hover:bg-gray-300 transition-colors"> Cancel </button> <button type="submit" class="flex-1 bg-black text-white px-4 py-2 rounded font-medium hover:bg-gray-800 transition-colors"> Save </button>
-      </div>
-     </form>
-    </div>
-   </div><!-- Video Player Modal -->
-   <div id="player-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/90">
-    <div class="w-full max-w-5xl">
-     <div class="flex justify-end mb-4">
-      <button id="close-player" class="text-white hover:text-gray-300 transition-colors"> <i data-lucide="x" class="w-8 h-8"></i> </button>
-     </div>
-     <div class="relative aspect-video bg-black rounded overflow-hidden">
-      <iframe id="video-iframe" class="absolute inset-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-     </div>
-    </div>
-   </div><!-- Delete Confirmation -->
-   <div id="delete-confirm" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop bg-black/50">
-    <div class="bg-white rounded-lg w-full max-w-sm border border-gray-200 shadow-xl p-6 text-center">
-     <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-      <i data-lucide="trash-2" class="w-6 h-6 text-red-600"></i>
-     </div>
-     <h3 class="font-bold text-lg mb-2">Delete Video?</h3>
-     <p class="text-gray-600 mb-6">This video will be removed from your portfolio.</p>
-     <div class="flex gap-3">
-      <button id="cancel-delete" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded font-medium hover:bg-gray-300 transition-colors"> Cancel </button> <button id="confirm-delete" class="flex-1 bg-red-600 text-white px-4 py-2 rounded font-medium hover:bg-red-700 transition-colors"> Delete </button>
-     </div>
-    </div>
-   </div>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <button class="nav-link active" onclick="showPage('works',this)">WORKS</button>
+    <button class="nav-link" onclick="showPage('live',this)">LIVE</button>
+    <button class="nav-link" onclick="showPage('about',this)">ABOUT</button>
   </div>
-  <script>
-    // ✅ Supabase credentials sudah ter-setup!
-    const SUPABASE_URL = 'https://cfklprwibgmunquamsfad.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNma2xwcndpYmdtdW5xdWFtc2ZkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyMDM1MDAsImV4cCI6MjA4OTc3OTUwMH0.wyksHBxGJNgmBl4ViO5rr2G1n-0kDa2KtSck8ACAuTk';
+  <div class="nav-right">
+    <input id="site-title-input" type="text" value="In-sight by artist" 
+      title="Click to edit site name"
+      onblur="saveSiteTitle(this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()"/>
+  </div>
+</nav>
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<!-- ═══ WORKS PAGE ═══ -->
+<div id="page-works" class="page active">
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-tag active" data-tag="ALL" onclick="filterTag(this)">ALL</button>
+    <div class="filter-sep"></div>
+    <!-- tags injected dynamically -->
+  </div>
+  <div class="grid-wrap">
+    <div class="masonry-grid" id="masonry-grid">
+      <div class="loader">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    // Default configuration
-    const defaultConfig = {
-      site_title: 'PORTFOLIO',
-      hero_description: 'Transforming music into cinematic experiences'
-    };
+<!-- ═══ LIVE PAGE ═══ -->
+<div id="page-live" class="page">
+  <div id="live-content">
+    <div class="loader">
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+      <div class="loader-dot"></div>
+    </div>
+  </div>
+</div>
 
-    // Videos data storage
-    let videos = [];
-    let videoToDelete = null;
-    let isLoading = false;
+<!-- ═══ ABOUT PAGE ═══ -->
+<div id="page-about" class="page">
+  <div class="about-header" id="about-name" contenteditable="true" 
+    onblur="saveAbout()" 
+    onkeydown="if(event.key==='Enter'&&event.shiftKey===false){event.preventDefault();this.blur()}"
+    spellcheck="false">ARTIST NAME</div>
+  <div class="about-sub" id="about-role" contenteditable="true"
+    onblur="saveAbout()"
+    spellcheck="false">MUSIC VIDEO DIRECTOR</div>
+  <div class="about-body" id="about-body" contenteditable="true"
+    onblur="saveAbout()"
+    spellcheck="false">Click to edit your bio. You can write about your work, style, and background here. This text is saved automatically to the database so it appears the same for everyone who visits your portfolio.</div>
+  <div class="about-edit-hint">↑ CLICK ANY TEXT TO EDIT</div>
+</div>
 
-    // Extract YouTube video ID
-    function getYouTubeId(url) {
-      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?\s]{11})/);
-      return match ? match[1] : null;
-    }
+<!-- FAB -->
+<button class="fab" id="fab-btn" onclick="openAddModal()" title="Add new video">+</button>
 
-    // Get YouTube thumbnail
-    function getYouTubeThumbnail(url, customThumbnail) {
-      if (customThumbnail) return customThumbnail;
-      const videoId = getYouTubeId(url);
-      return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : '';
-    }
+<!-- ═══ ADD/EDIT MODAL ═══ -->
+<div class="modal-bg" id="modal-bg" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title">ADD VIDEO</div>
 
-    // Render video card
-    function createVideoCard(video) {
-      const thumbnail = getYouTubeThumbnail(video.url, video.thumbnail);
-      const card = document.createElement('div');
-      card.className = 'video-item group';
-      card.dataset.videoId = video.id;
-      card.innerHTML = `
-        <div class="aspect-video bg-gray-200 rounded overflow-hidden relative mb-3">
-          <img src="${thumbnail}" alt="${video.title}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" loading="lazy">
-          <div class="absolute inset-0 bg-gray-200 items-center justify-center hidden">
-            <i data-lucide="video" class="w-12 h-12 text-gray-400"></i>
-          </div>
-          <div class="play-overlay absolute inset-0 bg-black/30 flex items-center justify-center">
-            <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center">
-              <i data-lucide="play" class="w-5 h-5 text-black ml-1"></i>
-            </div>
-          </div>
-          <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-            <button class="edit-btn w-8 h-8 rounded bg-white/90 flex items-center justify-center text-black hover:bg-white transition-colors" onclick="event.stopPropagation(); editVideo('${video.id}')">
-              <i data-lucide="edit-2" class="w-4 h-4"></i>
-            </button>
-            <button class="delete-btn w-8 h-8 rounded bg-red-500/90 flex items-center justify-center text-white hover:bg-red-600 transition-colors" onclick="event.stopPropagation(); showDeleteConfirm('${video.id}')">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
+    <div class="form-group">
+      <label class="form-label">YouTube URL or Video ID *</label>
+      <input class="form-input" id="f-yturl" type="text" placeholder="https://youtu.be/xxxxx  or  xxxxx"
+        oninput="previewThumb()"/>
+      <div class="form-hint">Paste full URL or just the video ID</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Thumbnail Preview</label>
+      <img class="thumb-preview" id="thumb-preview" src="" alt="thumbnail preview"/>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input class="form-input" id="f-title" type="text" placeholder="Song / Video title"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Artist / Client</label>
+        <input class="form-input" id="f-artist" type="text" placeholder="Artist name"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Year</label>
+        <input class="form-input" id="f-year" type="text" placeholder="2024"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tags (comma separated)</label>
+        <input class="form-input" id="f-tags" type="text" placeholder="MV, Anime, Original"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Custom Thumbnail URL (optional)</label>
+      <input class="form-input" id="f-thumb" type="text" placeholder="Leave blank to use YouTube thumbnail"
+        oninput="overrideThumb()"/>
+      <div class="form-hint">Paste any image URL to override the default YT thumbnail</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btn-delete" style="display:none;margin-right:auto" onclick="deleteItem()">DELETE</button>
+      <button class="btn btn-ghost" onclick="closeModal()">CANCEL</button>
+      <button class="btn btn-primary" onclick="saveItem()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ VIDEO LIGHTBOX ═══ -->
+<div class="lightbox-bg" id="lightbox-bg">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <div class="lightbox-iframe-wrap">
+    <iframe id="lightbox-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+  <div class="lightbox-meta">
+    <h2 id="lb-title"></h2>
+    <div class="sub" id="lb-sub"></div>
+  </div>
+  <div class="lightbox-actions">
+    <button class="btn btn-ghost" onclick="openEditFromLightbox()">EDIT</button>
+    <a id="lb-yt-link" class="btn btn-ghost" href="#" target="_blank">OPEN ON YOUTUBE ↗</a>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <button class="ctx-item" onclick="ctxEdit()">✏ Edit</button>
+  <button class="ctx-item" onclick="ctxOpen()">▶ Open in YouTube</button>
+  <button class="ctx-item danger" onclick="ctxDelete()">✕ Delete</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══ ADD LIVE MODAL ═══ -->
+<div class="modal-bg" id="live-modal-bg" onclick="closeLiveModalOnBg(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeLiveModal()">✕</button>
+    <div class="modal-title" id="live-modal-title">ADD LIVE DATE</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Date *</label>
+        <input class="form-input" id="lf-date" type="date"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-input" id="lf-status">
+          <option value="upcoming">UPCOMING</option>
+          <option value="past">PAST</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Event Name *</label>
+      <input class="form-input" id="lf-name" type="text" placeholder="Event / Concert name"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Venue / Location</label>
+      <input class="form-input" id="lf-venue" type="text" placeholder="Venue, City"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="live-btn-delete" style="display:none;margin-right:auto" onclick="deleteLiveItem()">DELETE</button>
+      <button class="btn btn-ghost" onclick="closeLiveModal()">CANCEL</button>
+      <button class="btn btn-primary" onclick="saveLiveItem()">SAVE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// SUPABASE CONFIG — hardcoded
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'https://cfklprwibgmunquamsfd.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let allVideos = [];
+let liveItems = [];
+let currentTag = 'ALL';
+let editingId = null;
+let editingLiveId = null;
+let ctxTargetId = null;
+let lbCurrentId = null;
+
+// ═══════════════════════════════════════════════
+// INIT — create tables if needed
+// ═══════════════════════════════════════════════
+async function init() {
+  // Ensure tables exist via upsert pattern — just try to load
+  await loadSiteSettings();
+  await loadVideos();
+  await loadLive();
+
+  // Realtime subscription for videos
+  sb.channel('videos-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mv_videos' }, () => {
+      loadVideos();
+    })
+    .subscribe();
+
+  // Realtime for live
+  sb.channel('live-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mv_live' }, () => {
+      loadLive();
+    })
+    .subscribe();
+
+  // Realtime for settings
+  sb.channel('settings-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mv_settings' }, () => {
+      loadSiteSettings();
+    })
+    .subscribe();
+}
+
+// ═══════════════════════════════════════════════
+// YOUTUBE UTILS
+// ═══════════════════════════════════════════════
+function extractYTId(input) {
+  if (!input) return null;
+  input = input.trim();
+  // Already just an ID (11 chars)
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  // Full URL patterns
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
+  ];
+  for (const p of patterns) {
+    const m = input.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function ytThumb(id, quality = 'hqdefault') {
+  return `https://img.youtube.com/vi/${id}/${quality}.jpg`;
+}
+
+// ═══════════════════════════════════════════════
+// LOAD VIDEOS
+// ═══════════════════════════════════════════════
+async function loadVideos() {
+  const { data, error } = await sb
+    .from('mv_videos')
+    .select('*')
+    .order('sort_order', { ascending: true });
+
+  if (error) {
+    // Table doesn't exist yet — show setup hint
+    document.getElementById('masonry-grid').innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-text">SETTING UP DATABASE...<br><br>
+          Please run the SQL setup in Supabase.<br>
+          <a href="#" onclick="showSetupSQL()" style="color:var(--accent);text-decoration:none">CLICK HERE FOR SETUP SQL</a>
         </div>
-        <h3 class="font-semibold text-gray-900">${video.title}</h3>
-        <p class="text-sm text-gray-600">${video.artist || ''}${video.artist && video.year ? ' • ' : ''}${video.year || ''}</p>
-      `;
-      card.addEventListener('click', () => playVideo(video));
-      return card;
+      </div>`;
+    return;
+  }
+
+  allVideos = data || [];
+  renderGrid();
+}
+
+// ═══════════════════════════════════════════════
+// RENDER GRID
+// ═══════════════════════════════════════════════
+function renderGrid() {
+  const grid = document.getElementById('masonry-grid');
+  let filtered = currentTag === 'ALL'
+    ? allVideos
+    : allVideos.filter(v => (v.tags || []).map(t=>t.toLowerCase()).includes(currentTag.toLowerCase()));
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">🎬</div>
+      <div class="empty-text">NO VIDEOS YET<br><br>CLICK + TO ADD YOUR FIRST VIDEO</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(v => {
+    const thumb = v.custom_thumb || ytThumb(v.yt_id, 'mqdefault');
+    const tags = (v.tags || []).map(t=>`<span class="item-tag">${t}</span>`).join('');
+    return `
+      <div class="grid-item" 
+        onclick="openLightbox('${v.id}')"
+        oncontextmenu="openCtx(event,'${v.id}')">
+        <img src="${thumb}" 
+          alt="${v.title}"
+          loading="lazy"
+          onerror="this.src='${ytThumb(v.yt_id,'sddefault')}'"/>
+        <div class="play-icon">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="grid-item-overlay">
+          <div class="item-title">${v.title || ''}</div>
+          <div class="item-tags">${tags}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  buildFilterTags();
+}
+
+// ═══════════════════════════════════════════════
+// FILTER TAGS
+// ═══════════════════════════════════════════════
+function buildFilterTags() {
+  const all = new Set();
+  allVideos.forEach(v => (v.tags || []).forEach(t => all.add(t)));
+
+  const bar = document.getElementById('filter-bar');
+  // Remove old dynamic tags
+  bar.querySelectorAll('[data-tag]:not([data-tag="ALL"])').forEach(el => el.remove());
+  bar.querySelectorAll('.filter-sep:not(:first-of-type)').forEach(el => el.remove());
+
+  all.forEach(tag => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-tag';
+    btn.dataset.tag = tag;
+    btn.textContent = tag.toUpperCase();
+    btn.onclick = function() { filterTag(this); };
+    bar.appendChild(btn);
+  });
+}
+
+function filterTag(btn) {
+  document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTag = btn.dataset.tag;
+  renderGrid();
+}
+
+// ═══════════════════════════════════════════════
+// LIGHTBOX
+// ═══════════════════════════════════════════════
+function openLightbox(id) {
+  const v = allVideos.find(x => x.id === id);
+  if (!v) return;
+  lbCurrentId = id;
+  document.getElementById('lightbox-iframe').src =
+    `https://www.youtube.com/embed/${v.yt_id}?autoplay=1&rel=0`;
+  document.getElementById('lb-title').textContent = v.title || '';
+  document.getElementById('lb-sub').textContent =
+    [v.artist, v.year].filter(Boolean).join(' · ');
+  document.getElementById('lb-yt-link').href =
+    `https://www.youtube.com/watch?v=${v.yt_id}`;
+  document.getElementById('lightbox-bg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox-iframe').src = '';
+  document.getElementById('lightbox-bg').classList.remove('open');
+  document.body.style.overflow = '';
+  lbCurrentId = null;
+}
+
+function openEditFromLightbox() {
+  closeLightbox();
+  if (lbCurrentId) openEditModal(lbCurrentId);
+}
+
+document.getElementById('lightbox-bg').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// ═══════════════════════════════════════════════
+// CONTEXT MENU
+// ═══════════════════════════════════════════════
+function openCtx(e, id) {
+  e.preventDefault();
+  ctxTargetId = id;
+  const menu = document.getElementById('ctx-menu');
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 150) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+  menu.classList.add('open');
+}
+function closeCtx() { document.getElementById('ctx-menu').classList.remove('open'); }
+document.addEventListener('click', closeCtx);
+
+function ctxEdit() { closeCtx(); openEditModal(ctxTargetId); }
+function ctxOpen() {
+  closeCtx();
+  const v = allVideos.find(x => x.id === ctxTargetId);
+  if (v) window.open(`https://www.youtube.com/watch?v=${v.yt_id}`, '_blank');
+}
+function ctxDelete() { closeCtx(); if(ctxTargetId) confirmDelete(ctxTargetId); }
+
+async function confirmDelete(id) {
+  if (!confirm('Delete this video from portfolio?')) return;
+  const { error } = await sb.from('mv_videos').delete().eq('id', id);
+  if (!error) { showToast('Deleted'); await loadVideos(); }
+  else showToast('Error: ' + error.message);
+}
+
+// ═══════════════════════════════════════════════
+// ADD / EDIT MODAL
+// ═══════════════════════════════════════════════
+function openAddModal() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'ADD VIDEO';
+  document.getElementById('btn-delete').style.display = 'none';
+  document.getElementById('f-yturl').value = '';
+  document.getElementById('f-title').value = '';
+  document.getElementById('f-artist').value = '';
+  document.getElementById('f-year').value = new Date().getFullYear();
+  document.getElementById('f-tags').value = '';
+  document.getElementById('f-thumb').value = '';
+  const prev = document.getElementById('thumb-preview');
+  prev.style.display = 'none'; prev.src = '';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function openEditModal(id) {
+  const v = allVideos.find(x => x.id === id);
+  if (!v) return;
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'EDIT VIDEO';
+  document.getElementById('btn-delete').style.display = 'inline-flex';
+  document.getElementById('f-yturl').value = v.yt_id || '';
+  document.getElementById('f-title').value = v.title || '';
+  document.getElementById('f-artist').value = v.artist || '';
+  document.getElementById('f-year').value = v.year || '';
+  document.getElementById('f-tags').value = (v.tags || []).join(', ');
+  document.getElementById('f-thumb').value = v.custom_thumb || '';
+  const prev = document.getElementById('thumb-preview');
+  prev.src = v.custom_thumb || ytThumb(v.yt_id);
+  prev.style.display = 'block';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  editingId = null;
+}
+function closeModalOnBg(e) { if(e.target===document.getElementById('modal-bg')) closeModal(); }
+
+function previewThumb() {
+  const val = document.getElementById('f-yturl').value;
+  const id = extractYTId(val);
+  const override = document.getElementById('f-thumb').value.trim();
+  const prev = document.getElementById('thumb-preview');
+  if (id && !override) {
+    prev.src = ytThumb(id);
+    prev.style.display = 'block';
+    // Auto-fill title if empty
+    if (!document.getElementById('f-title').value) {
+      fetchYTTitle(id);
     }
+  }
+}
 
-    // Render all videos
-    function renderVideos() {
-      const grid = document.getElementById('video-grid');
-      const emptyState = document.getElementById('empty-state');
-      
-      grid.innerHTML = '';
-      
-      if (videos.length === 0) {
-        emptyState.classList.remove('hidden');
-        grid.classList.add('hidden');
-      } else {
-        emptyState.classList.add('hidden');
-        grid.classList.remove('hidden');
-        videos.forEach(video => {
-          grid.appendChild(createVideoCard(video));
-        });
-      }
-      
-      lucide.createIcons();
+function overrideThumb() {
+  const url = document.getElementById('f-thumb').value.trim();
+  const prev = document.getElementById('thumb-preview');
+  if (url) { prev.src = url; prev.style.display = 'block'; }
+  else previewThumb();
+}
+
+async function fetchYTTitle(id) {
+  // Use oEmbed (no API key needed)
+  try {
+    const res = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
+    if (res.ok) {
+      const data = await res.json();
+      const titleEl = document.getElementById('f-title');
+      if (!titleEl.value) titleEl.value = data.title || '';
     }
+  } catch(e) {}
+}
 
-    // Modal functions
-    function openModal(isEdit = false) {
-      const modal = document.getElementById('video-modal');
-      const title = document.getElementById('modal-title');
-      title.textContent = isEdit ? 'Edit Video' : 'Add Video';
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
+async function saveItem() {
+  const ytRaw = document.getElementById('f-yturl').value.trim();
+  const ytId = extractYTId(ytRaw);
+  const title = document.getElementById('f-title').value.trim();
 
-    function closeModal() {
-      const modal = document.getElementById('video-modal');
-      const form = document.getElementById('video-form');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      form.reset();
-      document.getElementById('video-id').value = '';
-    }
+  if (!ytId) { showToast('Invalid YouTube URL'); return; }
+  if (!title) { showToast('Title is required'); return; }
 
-    // Edit video
-    function editVideo(id) {
-      const video = videos.find(v => v.id === id);
-      if (!video) return;
-      
-      document.getElementById('video-id').value = video.id;
-      document.getElementById('video-title').value = video.title;
-      document.getElementById('video-artist').value = video.artist || '';
-      document.getElementById('video-url').value = video.url;
-      document.getElementById('video-thumbnail').value = video.thumbnail || '';
-      document.getElementById('video-year').value = video.year || '';
-      
-      openModal(true);
-    }
+  const tagsRaw = document.getElementById('f-tags').value;
+  const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean);
 
-    // Delete confirmation
-    function showDeleteConfirm(id) {
-      videoToDelete = id;
-      const modal = document.getElementById('delete-confirm');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-    }
+  const payload = {
+    yt_id: ytId,
+    title,
+    artist: document.getElementById('f-artist').value.trim(),
+    year: document.getElementById('f-year').value.trim(),
+    tags,
+    custom_thumb: document.getElementById('f-thumb').value.trim() || null,
+    sort_order: editingId ? undefined : allVideos.length,
+  };
 
-    function hideDeleteConfirm() {
-      videoToDelete = null;
-      const modal = document.getElementById('delete-confirm');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
+  let error;
+  if (editingId) {
+    delete payload.sort_order;
+    ({ error } = await sb.from('mv_videos').update(payload).eq('id', editingId));
+  } else {
+    ({ error } = await sb.from('mv_videos').insert([payload]));
+  }
 
-    async function confirmDelete() {
-      if (videoToDelete) {
-        isLoading = true;
-        const { error } = await supabase
-          .from('videos')
-          .delete()
-          .eq('id', videoToDelete);
-        
-        if (error) {
-          alert('Error deleting video: ' + error.message);
-        } else {
-          loadVideos();
-        }
-        isLoading = false;
-      }
-      hideDeleteConfirm();
-    }
+  if (error) { showToast('Error: ' + error.message); return; }
+  showToast(editingId ? 'Updated!' : 'Added!');
+  closeModal();
+  await loadVideos();
+}
 
-    // Play video
-    function playVideo(video) {
-      const modal = document.getElementById('player-modal');
-      const iframe = document.getElementById('video-iframe');
-      
-      const videoId = getYouTubeId(video.url);
-      if (videoId) {
-        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-      } else {
-        window.open(video.url, '_blank');
-      }
-    }
+async function deleteItem() {
+  if (!editingId) return;
+  if (!confirm('Delete this video?')) return;
+  const { error } = await sb.from('mv_videos').delete().eq('id', editingId);
+  if (!error) { showToast('Deleted'); closeModal(); await loadVideos(); }
+  else showToast('Error: ' + error.message);
+}
 
-    function closePlayer() {
-      const modal = document.getElementById('player-modal');
-      const iframe = document.getElementById('video-iframe');
-      iframe.src = '';
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
+// ═══════════════════════════════════════════════
+// LIVE PAGE
+// ═══════════════════════════════════════════════
+async function loadLive() {
+  const { data, error } = await sb
+    .from('mv_live')
+    .select('*')
+    .order('date', { ascending: false });
 
-    // Load videos from Supabase
-    async function loadVideos() {
-      try {
-        const { data, error } = await supabase
-          .from('videos')
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        if (error) throw error;
-        videos = data || [];
-        renderVideos();
-      } catch (error) {
-        console.error('Error loading videos:', error.message);
-      }
-    }
+  liveItems = data || [];
+  renderLive();
+}
 
-    // Form submission
-    document.getElementById('video-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (isLoading) return;
-      
-      const id = document.getElementById('video-id').value;
-      const videoData = {
-        title: document.getElementById('video-title').value,
-        artist: document.getElementById('video-artist').value,
-        url: document.getElementById('video-url').value,
-        thumbnail: document.getElementById('video-thumbnail').value,
-        year: document.getElementById('video-year').value
-      };
-      
-      isLoading = true;
-      
-      try {
-        if (id) {
-          // Update existing
-          const { error } = await supabase
-            .from('videos')
-            .update(videoData)
-            .eq('id', id);
-          
-          if (error) throw error;
-        } else {
-          // Create new
-          const { error } = await supabase
-            .from('videos')
-            .insert([videoData]);
-          
-          if (error) throw error;
-        }
-        
-        loadVideos();
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
-      
-      isLoading = false;
-      closeModal();
-    });
+function renderLive() {
+  const wrap = document.getElementById('live-content');
+  const rows = liveItems.map(l => `
+    <div class="live-item" ondblclick="openEditLiveModal('${l.id}')">
+      <div class="live-date">${formatDate(l.date)}</div>
+      <div>
+        <div class="live-name">${l.name || ''}</div>
+        <div class="live-venue">${l.venue || ''}</div>
+      </div>
+      <span class="live-status ${l.status || 'past'}">${(l.status || 'past').toUpperCase()}</span>
+    </div>`).join('');
 
-    // Event listeners
-    document.getElementById('add-video-btn').addEventListener('click', () => openModal(false));
-    document.getElementById('close-modal').addEventListener('click', closeModal);
-    document.getElementById('cancel-btn').addEventListener('click', closeModal);
-    document.getElementById('close-player').addEventListener('click', closePlayer);
-    document.getElementById('cancel-delete').addEventListener('click', hideDeleteConfirm);
-    document.getElementById('confirm-delete').addEventListener('click', confirmDelete);
+  wrap.innerHTML = `
+    <div id="live-content-inner">
+      <div class="live-header">LIVE</div>
+      <div class="live-sub">PERFORMANCES &amp; EVENTS</div>
+      <div class="live-list">${rows || '<div style="color:var(--muted);font-family:Space Mono,monospace;font-size:.7rem;padding:2rem 0;letter-spacing:.1em">NO EVENTS YET</div>'}</div>
+      <button class="live-add-btn" onclick="openAddLiveModal()">+ ADD DATE</button>
+    </div>`;
+}
 
-    // Close modals on backdrop click
-    document.getElementById('video-modal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
-    document.getElementById('player-modal').addEventListener('click', function(e) {
-      if (e.target === this) closePlayer();
-    });
-    document.getElementById('delete-confirm').addEventListener('click', function(e) {
-      if (e.target === this) hideDeleteConfirm();
-    });
+function formatDate(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  return dt.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
 
-    // Element SDK integration
-    async function onConfigChange(config) {
-      const c = { ...defaultConfig, ...config };
-      
-      document.getElementById('site-title').textContent = c.site_title;
-      document.getElementById('hero-title').textContent = 'Work';
-      document.getElementById('hero-description').textContent = c.hero_description;
-    }
+function openAddLiveModal() {
+  editingLiveId = null;
+  document.getElementById('live-modal-title').textContent = 'ADD LIVE DATE';
+  document.getElementById('live-btn-delete').style.display = 'none';
+  document.getElementById('lf-date').value = '';
+  document.getElementById('lf-name').value = '';
+  document.getElementById('lf-venue').value = '';
+  document.getElementById('lf-status').value = 'upcoming';
+  document.getElementById('live-modal-bg').classList.add('open');
+}
 
-    function mapToCapabilities(config) {
-      return {
-        recolorables: [],
-        borderables: [],
-        fontEditable: undefined,
-        fontSizeable: undefined
-      };
-    }
+function openEditLiveModal(id) {
+  const l = liveItems.find(x => x.id === id);
+  if (!l) return;
+  editingLiveId = id;
+  document.getElementById('live-modal-title').textContent = 'EDIT LIVE DATE';
+  document.getElementById('live-btn-delete').style.display = 'inline-flex';
+  document.getElementById('lf-date').value = l.date || '';
+  document.getElementById('lf-name').value = l.name || '';
+  document.getElementById('lf-venue').value = l.venue || '';
+  document.getElementById('lf-status').value = l.status || 'past';
+  document.getElementById('live-modal-bg').classList.add('open');
+}
 
-    function mapToEditPanelValues(config) {
-      const c = { ...defaultConfig, ...config };
-      return new Map([
-        ['site_title', c.site_title],
-        ['hero_description', c.hero_description]
-      ]);
-    }
+function closeLiveModal() {
+  document.getElementById('live-modal-bg').classList.remove('open');
+  editingLiveId = null;
+}
+function closeLiveModalOnBg(e) { if(e.target===document.getElementById('live-modal-bg')) closeLiveModal(); }
 
-    // Initialize
-    loadVideos();
-    lucide.createIcons();
+async function saveLiveItem() {
+  const name = document.getElementById('lf-name').value.trim();
+  const date = document.getElementById('lf-date').value;
+  if (!name || !date) { showToast('Name and date required'); return; }
 
-    if (window.elementSdk) {
-      window.elementSdk.init({
-        defaultConfig,
-        onConfigChange,
-        mapToCapabilities,
-        mapToEditPanelValues
-      });
-    }
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e09a186553dff91',t:'MTc3NDIyOTAwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  const payload = {
+    date,
+    name,
+    venue: document.getElementById('lf-venue').value.trim(),
+    status: document.getElementById('lf-status').value,
+  };
+
+  let error;
+  if (editingLiveId) {
+    ({ error } = await sb.from('mv_live').update(payload).eq('id', editingLiveId));
+  } else {
+    ({ error } = await sb.from('mv_live').insert([payload]));
+  }
+
+  if (error) { showToast('Error: ' + error.message); return; }
+  showToast(editingLiveId ? 'Updated!' : 'Added!');
+  closeLiveModal();
+  await loadLive();
+}
+
+async function deleteLiveItem() {
+  if (!editingLiveId) return;
+  if (!confirm('Delete this event?')) return;
+  const { error } = await sb.from('mv_live').delete().eq('id', editingLiveId);
+  if (!error) { showToast('Deleted'); closeLiveModal(); await loadLive(); }
+}
+
+// ═══════════════════════════════════════════════
+// SITE SETTINGS (title + about)
+// ═══════════════════════════════════════════════
+async function loadSiteSettings() {
+  const { data } = await sb.from('mv_settings').select('*').eq('key', 'site').maybeSingle();
+  if (data && data.value) {
+    const s = data.value;
+    if (s.site_title) document.getElementById('site-title-input').value = s.site_title;
+    if (s.about_name) document.getElementById('about-name').textContent = s.about_name;
+    if (s.about_role) document.getElementById('about-role').textContent = s.about_role;
+    if (s.about_body) document.getElementById('about-body').textContent = s.about_body;
+  }
+}
+
+async function saveAbout() {
+  const s = {
+    site_title: document.getElementById('site-title-input').value,
+    about_name: document.getElementById('about-name').textContent,
+    about_role: document.getElementById('about-role').textContent,
+    about_body: document.getElementById('about-body').textContent,
+  };
+  await sb.from('mv_settings').upsert({ key: 'site', value: s });
+  showToast('Saved');
+}
+
+async function saveSiteTitle(val) {
+  const { data } = await sb.from('mv_settings').select('*').eq('key', 'site').maybeSingle();
+  const existing = (data && data.value) || {};
+  existing.site_title = val;
+  await sb.from('mv_settings').upsert({ key: 'site', value: existing });
+  showToast('Saved');
+}
+
+// ═══════════════════════════════════════════════
+// PAGE NAVIGATION
+// ═══════════════════════════════════════════════
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  // Show/hide FAB
+  document.getElementById('fab-btn').style.display = name === 'works' ? 'flex' : 'none';
+}
+
+// ═══════════════════════════════════════════════
+// SETUP SQL HELPER
+// ═══════════════════════════════════════════════
+function showSetupSQL() {
+  const sql = `-- Run this SQL in your Supabase SQL Editor:
+
+create table if not exists mv_videos (
+  id uuid primary key default gen_random_uuid(),
+  yt_id text not null,
+  title text,
+  artist text,
+  year text,
+  tags text[] default '{}',
+  custom_thumb text,
+  sort_order int default 0,
+  created_at timestamptz default now()
+);
+
+create table if not exists mv_live (
+  id uuid primary key default gen_random_uuid(),
+  date date,
+  name text,
+  venue text,
+  status text default 'past',
+  created_at timestamptz default now()
+);
+
+create table if not exists mv_settings (
+  key text primary key,
+  value jsonb
+);
+
+-- Enable RLS but allow all (public portfolio)
+alter table mv_videos enable row level security;
+alter table mv_live enable row level security;
+alter table mv_settings enable row level security;
+
+create policy "public read videos" on mv_videos for select using (true);
+create policy "public write videos" on mv_videos for all using (true) with check (true);
+
+create policy "public read live" on mv_live for select using (true);
+create policy "public write live" on mv_live for all using (true) with check (true);
+
+create policy "public read settings" on mv_settings for select using (true);
+create policy "public write settings" on mv_settings for all using (true) with check (true);`;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `<div style="background:#111;border:1px solid #333;padding:2rem;max-width:700px;width:94vw;position:relative">
+    <button onclick="this.closest('div[style]').remove()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer">✕</button>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.1em;margin-bottom:1rem">SUPABASE SETUP</div>
+    <p style="font-family:'Space Mono',monospace;font-size:.65rem;color:#888;margin-bottom:1rem;letter-spacing:.08em">
+      1. Go to your Supabase project → SQL Editor<br>
+      2. Paste and run the SQL below<br>
+      3. Refresh this page
+    </p>
+    <textarea readonly style="width:100%;height:320px;background:#060606;border:1px solid #222;color:#aaa;font-family:'Space Mono',monospace;font-size:.62rem;padding:.75rem;resize:none;outline:none">${sql}</textarea>
+    <button onclick="navigator.clipboard.writeText(document.querySelector('textarea').value);this.textContent='COPIED!'" 
+      style="margin-top:.75rem;background:#fff;color:#000;border:none;padding:.5rem 1.2rem;font-family:'Space Mono',monospace;font-size:.65rem;cursor:pointer;letter-spacing:.1em">COPY SQL</button>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+// ═══════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeLightbox();
+    closeModal();
+    closeLiveModal();
+  }
+});
+
+// ═══════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════
+init();
+</script>
+</body>
 </html>
