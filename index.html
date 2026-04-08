@@ -7,6 +7,7 @@
   <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
     :root {
       --bg: #0a0a0a;
@@ -146,6 +147,74 @@
     }
     .play-icon svg { width:16px; height:16px; fill:#fff; margin-left:2px; }
     .grid-item:hover .play-icon { transform:translate(-50%,-50%) scale(1); }
+
+
+    /* ─── DRAG & DROP (admin only) ─── */
+    body.edit-enabled .masonry-grid { cursor: default; }
+    body.edit-enabled .grid-item {
+      cursor: grab;
+      transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
+    }
+    body.edit-enabled .grid-item:active { cursor: grabbing; }
+
+    /* drag handle icon top-left */
+    .drag-handle {
+      display: none;
+      position: absolute; top:6px; left:6px; z-index:3;
+      width:22px; height:22px;
+      background:rgba(0,0,0,0.72);
+      border:1px solid rgba(255,255,255,0.15);
+      border-radius:3px;
+      align-items:center; justify-content:center;
+      cursor:grab; color:rgba(255,255,255,0.55);
+      font-size:0.7rem; line-height:1;
+      user-select:none;
+    }
+    body.edit-enabled .drag-handle { display:flex; }
+
+    /* sortable ghost & chosen */
+    .sortable-ghost {
+      opacity: 0.25;
+      outline: 2px dashed rgba(255,255,255,0.3);
+    }
+    .sortable-chosen {
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.6), 0 8px 32px rgba(0,0,0,0.7) !important;
+      transform: scale(1.02) !important;
+      z-index: 50;
+    }
+    .sortable-drag { opacity: 1 !important; }
+
+    /* save order button */
+    #save-order-btn {
+      display: none;
+      position: fixed; bottom: 6rem; right: 2rem; z-index: 400;
+      padding: 0.55rem 1.1rem;
+      background: var(--green);
+      color: #000; border: none; border-radius: 3px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 0.1em; font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(34,204,102,0.3);
+      animation: fadeIn 0.2s ease;
+    }
+    #save-order-btn.visible { display: block; }
+    #save-order-btn:hover { background: #1db86e; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* reorder mode banner */
+    #reorder-banner {
+      display: none;
+      position: sticky; top: 52px; z-index: 110;
+      padding: 0.5rem 1.5rem;
+      background: rgba(34,204,102,0.1);
+      border-bottom: 1px solid rgba(34,204,102,0.25);
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem; color: var(--green);
+      letter-spacing: 0.12em;
+      align-items: center; justify-content: space-between;
+    }
+    #reorder-banner.on { display: flex; }
+    #reorder-banner span { opacity: 0.6; }
 
     /* conditional badge */
     .item-edit-badge {
@@ -618,6 +687,10 @@
     <button class="filter-tag active" data-tag="ALL" onclick="filterTag(this)">ALL</button>
     <div class="filter-sep"></div>
   </div>
+  <div id="reorder-banner">
+    ⠿ DRAG THUMBNAILS TO REORDER
+    <span>CHANGES SAVED AUTOMATICALLY</span>
+  </div>
   <div class="grid-wrap">
     <div class="masonry-grid" id="masonry-grid">
       <div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
@@ -728,6 +801,9 @@
   <button class="ctx-item ctx-adm danger" onclick="ctxDel()">✕ Delete</button>
 </div>
 
+<!-- SAVE ORDER BTN -->
+<button id="save-order-btn" onclick="saveOrder()">✓ SAVE ORDER</button>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -836,12 +912,15 @@ function _setEdit() {
   _ue=true;
   document.body.classList.add('edit-enabled');
   document.getElementById('e-dot').classList.add('on');
-  toast('Editor unlocked');
+  initSortable();
+  toast('Editor unlocked  ·  drag thumbnails to reorder');
 }
 function _lock() {
   _ue=false;
   document.body.classList.remove('edit-enabled');
   document.getElementById('e-dot').classList.remove('on');
+  if (_sortable) { _sortable.destroy(); _sortable = null; }
+  hideSaveBtn(); _orderChanged = false;
   // Close and hide color panel
   const panel = document.getElementById('color-panel');
   const btn   = document.getElementById('cp-toggle-btn');
@@ -918,9 +997,10 @@ function renderGrid() {
     const th   = v.custom_thumb || '';
     const tags = (v.tags||[]).map(t=>`<span class="item-tag">${esc(t)}</span>`).join('');
     const ytid = v.yt_id;
-    return `<div class="grid-item"
-        onclick="openLb('${v.id}')"
+    return `<div class="grid-item" data-id="${v.id}"
+        onclick="handleItemClick(event,'${v.id}')"
         oncontextmenu="openCtx(event,'${v.id}')">
+      <div class="drag-handle" title="Drag to reorder">⠿</div>
       <div class="item-edit-badge">EDIT</div>
       <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/maxresdefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
         alt="${esc(v.title||'')}" loading="lazy"
@@ -934,7 +1014,7 @@ function renderGrid() {
   }).join('');
 
   buildTags();
-  // Apply masonry after images load
+  initSortable();
 }
 
 function esc(s) {
@@ -944,6 +1024,86 @@ function esc(s) {
 // ════════════════════════════════════════════════
 // FILTER TAGS
 // ════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+// DRAG CLICK GUARD — ignore click after drag
+// ════════════════════════════════════════════════
+let _dragging = false;
+function handleItemClick(e, id) {
+  if (_dragging) { _dragging = false; return; }
+  if (_ue && e.target.classList.contains('drag-handle')) return;
+  openLb(id);
+}
+
+// ════════════════════════════════════════════════
+// SORTABLE — drag & drop reorder
+// ════════════════════════════════════════════════
+let _sortable = null;
+let _orderChanged = false;
+
+function initSortable() {
+  const el = document.getElementById('masonry-grid');
+  if (_sortable) { _sortable.destroy(); _sortable = null; }
+  if (!_ue) return;
+
+  _sortable = Sortable.create(el, {
+    animation: 180,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    handle: '.drag-handle',
+    filter: '.empty-state',
+    onStart() { _dragging = false; },
+    onMove() { _dragging = true; },
+    onEnd() {
+      _dragging = true;
+      _orderChanged = true;
+      showSaveBtn();
+      setTimeout(() => { _dragging = false; }, 100);
+    }
+  });
+}
+
+function showSaveBtn() {
+  document.getElementById('save-order-btn').classList.add('visible');
+  document.getElementById('reorder-banner').classList.add('on');
+}
+
+function hideSaveBtn() {
+  document.getElementById('save-order-btn').classList.remove('visible');
+  document.getElementById('reorder-banner').classList.remove('on');
+}
+
+async function saveOrder() {
+  if (!_ue || !_orderChanged) return;
+  const grid = document.getElementById('masonry-grid');
+  const items = [...grid.querySelectorAll('.grid-item[data-id]')];
+  const updates = items.map((el, i) => ({
+    id: el.dataset.id,
+    sort_order: i
+  }));
+
+  // Update each row's sort_order
+  const promises = updates.map(u =>
+    sb.from('mv_videos').update({ sort_order: u.sort_order }).eq('id', u.id)
+  );
+  const results = await Promise.all(promises);
+  const hasError = results.some(r => r.error);
+
+  if (hasError) {
+    toast('Error saving order');
+  } else {
+    // Update local state to reflect new order
+    updates.forEach(u => {
+      const v = videos.find(x => x.id === u.id);
+      if (v) v.sort_order = u.sort_order;
+    });
+    videos.sort((a,b) => a.sort_order - b.sort_order);
+    _orderChanged = false;
+    hideSaveBtn();
+    toast('Order saved ✓');
+  }
+}
+
 function buildTags() {
   const all = new Set();
   videos.forEach(v => (v.tags||[]).forEach(t => all.add(t)));
