@@ -117,9 +117,9 @@
       align-items: stretch;
       will-change: transform;
     }
-    .hero-strip.row1 { animation: hScrollL 48s linear infinite; }
-    .hero-strip.row2 { animation: hScrollR 48s linear infinite; }
-    .hero-strip.row3 { animation: hScrollL 48s linear infinite; }
+    .hero-strip.row1 { animation: hScrollL 96s linear infinite; }
+    .hero-strip.row2 { animation: hScrollR 96s linear infinite; }
+    .hero-strip.row3 { animation: hScrollL 96s linear infinite; }
 
     /* translateX(-50%) = exactly one full set width → seamless */
     @keyframes hScrollL { from{transform:translateX(0)} to{transform:translateX(-50%)} }
@@ -847,6 +847,68 @@
   <div class="cp-divider"></div>
   <button class="cp-save" onclick="saveColors()">SAVE COLORS</button>
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
+
+  <div class="cp-divider"></div>
+  <div class="cp-title">HERO TEXT <span>● LOGO</span></div>
+
+  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem">
+    <div class="cp-label">Main Title</div>
+    <input type="text" id="hc-title" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="Nightmare XD"
+      oninput="liveHeroTitle(this.value)"/>
+  </div>
+
+  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem;margin-top:0.5rem">
+    <div class="cp-label">Subtitle</div>
+    <input type="text" id="hc-subtitle" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="motion designer"
+      oninput="liveHeroSubtitle(this.value)"/>
+  </div>
+
+  <div class="cp-row" style="margin-top:0.6rem">
+    <div class="cp-label">Title Size</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-fontsize" min="2" max="12" step="0.1" value="7"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroSize(this.value);document.getElementById('hc-fontsize-val').textContent=this.value+'rem'"/>
+      <span id="hc-fontsize-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:3rem">7rem</span>
+    </div>
+  </div>
+
+  <div class="cp-divider"></div>
+  <div class="cp-title">HERO PREVIEW <span>● THUMBNAIL STRIP</span></div>
+
+  <div class="cp-row">
+    <div class="cp-label">Opacity (0–100%)</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="40"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroOpacity(this.value);document.getElementById('hc-opacity-val').textContent=this.value+'%'"/>
+      <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">40%</span>
+    </div>
+  </div>
+
+  <div class="cp-row">
+    <div class="cp-label">Row Height (zoom)</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-rowheight" min="40" max="220" step="5" value="110"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroRowHeight(this.value);document.getElementById('hc-rh-val').textContent=this.value+'px'"/>
+      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">110px</span>
+    </div>
+  </div>
+
+  <div class="cp-row">
+    <div class="cp-label">Scroll Speed</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-speed" min="20" max="200" step="5" value="96"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroSpeed(this.value);document.getElementById('hc-speed-val').textContent=this.value+'s'"/>
+      <span id="hc-speed-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">96s</span>
+    </div>
+  </div>
+
+  <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE HERO SETTINGS</button>
 </div>
 
 <!-- WORKS PAGE -->
@@ -860,14 +922,8 @@
       <div class="hero-strip row3" id="hero-row3"></div>
     </div>
     <div class="hero-center">
-      <div class="hero-title" id="hero-title-text" contenteditable="true"
-        spellcheck="false"
-        onblur="saveHeroText()"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">Nightmare XD</div>
-      <div class="hero-subtitle" id="hero-subtitle-text" contenteditable="true"
-        spellcheck="false"
-        onblur="saveHeroText()"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">motion designer</div>
+      <div class="hero-title" id="hero-title-text" spellcheck="false">Nightmare XD</div>
+      <div class="hero-subtitle" id="hero-subtitle-text" spellcheck="false">motion designer</div>
       <div class="hero-scroll-hint">▼ &nbsp; SCROLL TO EXPLORE</div>
     </div>
   </section>
@@ -1248,11 +1304,11 @@ function populateHero() {
   // Render the set TWICE back-to-back inside the strip.
   // CSS animation: translateX(0) → translateX(-50%)
   // When it snaps back to 0, it looks identical to -50% → seamless.
+  const op = (window._heroOpacity !== undefined) ? window._heroOpacity : 0.4;
   function makeImgs(arr) {
     const imgs = arr.map(src =>
-      `<img class="hero-thumb" src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`
+      `<img class="hero-thumb" src="${src}" alt="" loading="lazy" style="opacity:${op}" onerror="this.style.display='none'">`
     ).join('');
-    // Duplicate: [imgs][imgs] — first half is shown, second half is the "reset clone"
     return imgs + imgs;
   }
 
@@ -1541,8 +1597,83 @@ async function loadSettings() {
     if (s.about_body) document.getElementById('about-body').textContent = s.about_body;
     if (s.colors) loadColors(s.colors);
     if (s.favicon) loadFavicon(s.favicon);
+    applyHeroSettings(s);
   }
 }
+// ════════════════════════════════════════════════
+// HERO LIVE CONTROLS (admin panel)
+// ════════════════════════════════════════════════
+function liveHeroTitle(v) {
+  const el = document.getElementById('hero-title-text');
+  if (el) el.textContent = v || 'Nightmare XD';
+}
+function liveHeroSubtitle(v) {
+  const el = document.getElementById('hero-subtitle-text');
+  if (el) el.textContent = v || 'motion designer';
+}
+function liveHeroSize(v) {
+  const el = document.getElementById('hero-title-text');
+  if (el) el.style.fontSize = v + 'rem';
+}
+function liveHeroOpacity(v) {
+  document.querySelectorAll('.hero-thumb').forEach(img => {
+    img.style.opacity = (v / 100).toFixed(2);
+  });
+  window._heroOpacity = v / 100;
+}
+function liveHeroRowHeight(v) {
+  document.querySelectorAll('.hero-strip').forEach(row => {
+    row.style.height = v + 'px';
+  });
+}
+function liveHeroSpeed(v) {
+  document.querySelectorAll('.hero-strip').forEach(row => {
+    row.style.animationDuration = v + 's';
+  });
+}
+async function saveHeroSettings() {
+  if (!_ue) return;
+  const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
+  const ex = (data && data.value) || {};
+  const titleEl    = document.getElementById('hero-title-text');
+  const subtitleEl = document.getElementById('hero-subtitle-text');
+  ex.hero_title    = (document.getElementById('hc-title').value.trim())    || (titleEl    ? titleEl.textContent    : 'Nightmare XD');
+  ex.hero_subtitle = (document.getElementById('hc-subtitle').value.trim()) || (subtitleEl ? subtitleEl.textContent : 'motion designer');
+  ex.hero_fontsize  = document.getElementById('hc-fontsize').value;
+  ex.hero_opacity   = document.getElementById('hc-opacity').value;
+  ex.hero_rowheight = document.getElementById('hc-rowheight').value;
+  ex.hero_speed     = document.getElementById('hc-speed').value;
+  await sb.from('mv_settings').upsert({ key:'site', value: ex });
+  toast('Hero settings saved ✓');
+}
+function applyHeroSettings(s) {
+  if (!s) return;
+  const tt = document.getElementById('hero-title-text');
+  const st = document.getElementById('hero-subtitle-text');
+  if (s.hero_title    && tt) { tt.textContent = s.hero_title;    const i=document.getElementById('hc-title');    if(i) i.value=s.hero_title; }
+  if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
+  if (s.hero_fontsize)  {
+    liveHeroSize(s.hero_fontsize);
+    const sl=document.getElementById('hc-fontsize'); if(sl) sl.value=s.hero_fontsize;
+    const lb=document.getElementById('hc-fontsize-val'); if(lb) lb.textContent=s.hero_fontsize+'rem';
+  }
+  if (s.hero_opacity !== undefined) {
+    liveHeroOpacity(s.hero_opacity);
+    const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity;
+    const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=s.hero_opacity+'%';
+  }
+  if (s.hero_rowheight) {
+    liveHeroRowHeight(s.hero_rowheight);
+    const sl=document.getElementById('hc-rowheight'); if(sl) sl.value=s.hero_rowheight;
+    const lb=document.getElementById('hc-rh-val'); if(lb) lb.textContent=s.hero_rowheight+'px';
+  }
+  if (s.hero_speed) {
+    liveHeroSpeed(s.hero_speed);
+    const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed;
+    const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s';
+  }
+}
+
 async function saveAbout() {
   if(!_ue) return;
   const s = {
