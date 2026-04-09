@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MV Portfolio</title>
   <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:wght@300;400;600&family=Shadows+Into+Light&family=Doto:wght@100..900&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&family=Cormorant+Garamond:wght@300;400;600&family=Shadows+Into+Light&family=Doto:wght@100..900&family=Josefin+Slab:ital,wght@1,250;0,250&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <style>
@@ -89,8 +89,8 @@
     #hero {
       position: relative;
       width: 100%;
-      height: 42vh;
-      min-height: 260px;
+      height: 58vh;
+      min-height: 370px;
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -104,22 +104,22 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 3px;
+      gap: 4px;
       padding: 0;
     }
 
     /* each row — 55px tall */
     .hero-strip {
-      height: 55px;
+      height: 110px;
       flex-shrink: 0;
       display: flex;
-      gap: 3px;
+      gap: 4px;
       align-items: stretch;
       will-change: transform;
     }
-    .hero-strip.row1 { animation: hScrollL 50s linear infinite; }
-    .hero-strip.row2 { animation: hScrollR 56s linear infinite; }
-    .hero-strip.row3 { animation: hScrollL 44s linear infinite; }
+    .hero-strip.row1 { animation: hScrollL 48s linear infinite; }
+    .hero-strip.row2 { animation: hScrollR 48s linear infinite; }
+    .hero-strip.row3 { animation: hScrollL 48s linear infinite; }
 
     /* translateX(-50%) = exactly one full set width → seamless */
     @keyframes hScrollL { from{transform:translateX(0)} to{transform:translateX(-50%)} }
@@ -130,8 +130,8 @@
       height: 100%;
       aspect-ratio: 16/9;
       object-fit: cover;
-      opacity: 0.5;
-      filter: saturate(0.8) brightness(0.6);
+      opacity: 0.4;
+      filter: saturate(0.75) brightness(0.55);
       border-radius: 3px;
     }
 
@@ -193,7 +193,41 @@
         0 0 80px rgba(255,255,255,0.07),
         0 2px 30px rgba(0,0,0,0.9);
       white-space: nowrap;
+      outline: none;
+      cursor: default;
     }
+    .hero-subtitle {
+      font-family: 'Josefin Slab', serif;
+      font-weight: 250;
+      font-style: italic;
+      font-size: clamp(0.85rem, 2vw, 1.25rem);
+      letter-spacing: 0.22em;
+      color: rgba(255,255,255,0.55);
+      text-transform: lowercase;
+      margin-top: 0.6rem;
+      text-shadow: 0 1px 12px rgba(0,0,0,0.8);
+      white-space: nowrap;
+      outline: none;
+      cursor: default;
+    }
+    /* editable in admin mode */
+    body.edit-enabled .hero-title,
+    body.edit-enabled .hero-subtitle {
+      cursor: text;
+      pointer-events: all;
+    }
+    body.edit-enabled .hero-title:hover,
+    body.edit-enabled .hero-subtitle:hover {
+      outline: 1px dashed rgba(255,255,255,0.25);
+      outline-offset: 6px;
+    }
+    body.edit-enabled .hero-title:focus,
+    body.edit-enabled .hero-subtitle:focus {
+      outline: 1px solid rgba(255,255,255,0.5);
+      outline-offset: 6px;
+    }
+    /* non-admin: no pointer events */
+    .hero-title, .hero-subtitle { pointer-events: none; }
 
     .hero-scroll-hint {
       font-family: 'Space Mono', monospace;
@@ -237,7 +271,7 @@
     .masonry-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 3px;
+      gap: 4px;
     }
     .grid-item {
       position:relative; overflow:hidden;
@@ -826,7 +860,14 @@
       <div class="hero-strip row3" id="hero-row3"></div>
     </div>
     <div class="hero-center">
-      <div class="hero-title">Nightmare XD</div>
+      <div class="hero-title" id="hero-title-text" contenteditable="true"
+        spellcheck="false"
+        onblur="saveHeroText()"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">Nightmare XD</div>
+      <div class="hero-subtitle" id="hero-subtitle-text" contenteditable="true"
+        spellcheck="false"
+        onblur="saveHeroText()"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}">motion designer</div>
       <div class="hero-scroll-hint">▼ &nbsp; SCROLL TO EXPLORE</div>
     </div>
   </section>
