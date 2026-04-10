@@ -243,17 +243,24 @@
 <div id="fm-bg">
   <div class="pw-box">
     <div class="pw-title">ADMIN ACCESS</div>
-    <div class="pw-sub">ENTER PASSWORD TO UNLOCK EDITING</div>
+    <div class="pw-sub">LOGIN WITH SUPABASE ACCOUNT</div>
+    
+    <div class="pw-wrap" style="margin-bottom:0.8rem">
+      <input id="email-input" type="email" placeholder="admin@email.com"
+        onkeydown="if(event.key==='Enter') document.getElementById('pw-input').focus()"/>
+    </div>
+    
     <div class="pw-wrap">
       <input id="pw-input" type="password" placeholder="••••••••••••"
         autocomplete="current-password"
         onkeydown="if(event.key==='Enter')_chk()"/>
       <button class="pw-eye" onclick="toggleEye()">👁</button>
     </div>
+    
     <div id="pw-err"></div>
     <div class="pw-actions">
       <button class="btn btn-ghost" onclick="_closePw()">CANCEL</button>
-      <button class="btn btn-primary" onclick="_chk()">ENTER</button>
+      <button class="btn btn-primary" onclick="_chk()">LOGIN</button>
     </div>
   </div>
 </div>
