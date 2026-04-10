@@ -1,0 +1,33 @@
+:root {
+  --bg: #0a0a0a;
+  --nav: rgba(10,10,10,0.95);
+  --surface: #111;
+  --border: #222;
+  --accent: #fff;
+  --muted: #555;
+  --muted2: #333;
+  --text: #e8e8e8;
+  --red: #cc2200;
+  --green: #22cc66;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --- NAV --- */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:500;
+  display: flex; align-items:center; justify-content:space-between;
+  padding: 0 2.5rem; height: 52px;
+  background: var(--nav);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+/* ... [Lanjutkan dengan semua isi tag <style> dari file asli mu] ... */
