@@ -1,17 +1,4 @@
 (function() {
-  try {
-    const cache = localStorage.getItem('mv_settings_cache');
-    if (cache) {
-      const s = JSON.parse(cache);
-      if (s.hero_fontsize) document.documentElement.style.setProperty('--hero-fs', s.hero_fontsize + 'rem');
-      if (s.colors) {
-        Object.entries(s.colors).forEach(([k, v]) => {
-          if (k.startsWith('--') && k !== '--nav-bg') document.documentElement.style.setProperty(k, v);
-        });
-      }
-    }
-  } catch(e) {}
-
   const _SU = 'https://cfklprwibgmunquamsfd.supabase.co';
   const _SK = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
   const sb  = supabase.createClient(_SU, _SK);
