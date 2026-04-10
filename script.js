@@ -1,14 +1,8 @@
 (function() {
-  // ════════════════════════════════════════════════
-  // SUPABASE CREDENTIALS
-  // ════════════════════════════════════════════════
   const _SU = 'https://cfklprwibgmunquamsfd.supabase.co';
   const _SK = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
   const sb  = supabase.createClient(_SU, _SK);
 
-  // ════════════════════════════════════════════════
-  // STATE (Variabel ini tersembunyi, tidak bisa diakses dari Console)
-  // ════════════════════════════════════════════════
   let videos     = [];
   let currentTag = 'ALL';
   let editingId  = null;
@@ -18,18 +12,13 @@
   let keyBuf     = '';
   let keyTmr     = null;
 
-  // Trigger admin dari ketikan rahasia
   const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
   const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
-  // ════════════════════════════════════════════════
-  // INIT
-  // ════════════════════════════════════════════════
   async function init() {
     await loadSettings();
     await loadVideos();
 
-    // CEK JIKA SUDAH PERNAH LOGIN (SESI AKTIF)
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
       _setEdit();
@@ -40,18 +29,13 @@
     sb.channel('cfg').on('postgres_changes',
       { event:'*', schema:'public', table:'mv_settings' }, loadSettings).subscribe();
 
-    // Close lightbox on bg click
     document.getElementById('lightbox-bg').addEventListener('click', e => {
       if (e.target === document.getElementById('lightbox-bg')) closeLb();
     });
 
-    // Global key listener
     document.addEventListener('keydown', onKey);
   }
 
-  // ════════════════════════════════════════════════
-  // Input listener
-  // ════════════════════════════════════════════════
   function onKey(e) {
     if (e.key === 'Escape') {
       closeLb(); closeModal(); _closePw(); return;
@@ -72,9 +56,6 @@
     }
   }
 
-  // ════════════════════════════════════════════════
-  // PASSWORD MODAL (SUPABASE AUTH)
-  // ════════════════════════════════════════════════
   function _unlock() {
     document.getElementById('email-input').value = '';
     document.getElementById('pw-input').value = '';
@@ -105,18 +86,15 @@
       return;
     }
 
-    // UI state while loading
     btn.textContent = 'WAIT...';
     btn.disabled = true;
     err.textContent = '';
 
-    // Auth Supabase
     const { data, error } = await sb.auth.signInWithPassword({
       email: email,
       password: password,
     });
 
-    // Revert UI
     btn.textContent = 'LOGIN';
     btn.disabled = false;
 
@@ -133,7 +111,6 @@
     }
   }
 
-  // Fungsi sensitif ini TIDAK diekspor ke global, jadi tidak bisa dipanggil manual dari F12
   function _setEdit() {
     _ue=true;
     document.body.classList.add('edit-enabled');
@@ -149,18 +126,15 @@
     document.getElementById('e-dot').classList.remove('on');
     if (typeof _sortable !== 'undefined' && _sortable) { _sortable.destroy(); _sortable = null; }
     hideSaveBtn(); _orderChanged = false;
-    
+
     const panel = document.getElementById('color-panel');
     const btn   = document.getElementById('cp-toggle-btn');
     if (panel) panel.classList.remove('open');
     if (btn)   btn.classList.remove('active');
-    
+
     toast('Editor locked (Logged out)');
   }
 
-  // ════════════════════════════════════════════════
-  // YOUTUBE & THUMBNAILS
-  // ════════════════════════════════════════════════
   function ytId(raw) {
     if (!raw) return null;
     raw = raw.trim();
@@ -173,7 +147,7 @@
     ]) { const m = raw.match(p); if (m) return m[1]; }
     return null;
   }
-  
+
   function ytThumb(id, q='maxresdefault') {
     return `https://img.youtube.com/vi/${id}/${q}.jpg`;
   }
@@ -189,9 +163,6 @@
     }
   }
 
-  // ════════════════════════════════════════════════
-  // LOAD VIDEOS & GRID
-  // ════════════════════════════════════════════════
   async function loadVideos() {
     const { data, error } = await sb.from('mv_videos').select('*').order('sort_order');
     if (error) {
@@ -227,7 +198,7 @@
       return `<div class="grid-item" data-id="${v.id}"
           onclick="handleItemClick(event,'${v.id}')"
           oncontextmenu="openCtx(event,'${v.id}')">
-        <div class="drag-handle" title="Drag to reorder">⠿</div>
+        <div class="drag-handle" title="">⠿</div>
         <div class="item-edit-badge">EDIT</div>
         <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/maxresdefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
           alt="${esc(v.title||'')}" loading="lazy"
@@ -249,9 +220,6 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // ════════════════════════════════════════════════
-  // HERO STRIPS
-  // ════════════════════════════════════════════════
   function populateHero() {
     const rows = ['hero-row1','hero-row2','hero-row3'].map(id => document.getElementById(id));
     if (!rows[0]) return;
@@ -274,9 +242,6 @@
     rows.forEach((row, i) => { if (row) row.innerHTML = makeImgs(sets[i]); });
   }
 
-  // ════════════════════════════════════════════════
-  // INTERACTION LOGIC
-  // ════════════════════════════════════════════════
   let _dragging = false;
   function handleItemClick(e, id) {
     if (_dragging) { _dragging = false; return; }
@@ -318,7 +283,7 @@
 
     const promises = updates.map(u => sb.from('mv_videos').update({ sort_order: u.sort_order }).eq('id', u.id));
     const results = await Promise.all(promises);
-    
+
     if (results.some(r => r.error)) {
       toast('Error saving order');
     } else {
@@ -340,15 +305,12 @@
       bar.appendChild(b);
     });
   }
-  
+
   function filterTag(btn) {
     document.querySelectorAll('.filter-tag').forEach(b => b.classList.remove('active'));
     btn.classList.add('active'); currentTag = btn.dataset.tag; renderGrid();
   }
 
-  // ════════════════════════════════════════════════
-  // LIGHTBOX & CONTEXT MENU
-  // ════════════════════════════════════════════════
   function openLb(id) {
     const v = videos.find(x => x.id === id);
     if (!v) return;
@@ -360,13 +322,13 @@
     document.getElementById('lightbox-bg').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-  
+
   function closeLb() {
     document.getElementById('lb-iframe').src = '';
     document.getElementById('lightbox-bg').classList.remove('open');
     document.body.style.overflow = ''; lbId = null;
   }
-  
+
   function editFromLb() { if(!_ue) return; const id = lbId; closeLb(); if (id) openEdit(id); }
 
   function openCtx(e, id) {
@@ -376,7 +338,7 @@
     m.style.top  = Math.min(e.clientY, window.innerHeight-110)+'px';
     m.classList.add('open');
   }
-  
+
   document.addEventListener('click', () => document.getElementById('ctx-menu').classList.remove('open'));
   function ctxEdit() { document.getElementById('ctx-menu').classList.remove('open'); if(_ue) openEdit(ctxId); }
   function ctxYT()   { document.getElementById('ctx-menu').classList.remove('open'); const v = videos.find(x => x.id === ctxId); if (v) window.open(`https://www.youtube.com/watch?v=${v.yt_id}`,'_blank'); }
@@ -389,9 +351,6 @@
     });
   }
 
-  // ════════════════════════════════════════════════
-  // ADD / EDIT MODAL
-  // ════════════════════════════════════════════════
   function openAddModal() {
     if(!_ue) return;
     editingId = null;
@@ -402,7 +361,7 @@
     const p = document.getElementById('thumb-preview'); p.style.display='none'; p.src='';
     document.getElementById('modal-bg').classList.add('open');
   }
-  
+
   function openEdit(id) {
     if(!_ue) return;
     const v = videos.find(x => x.id === id);
@@ -416,7 +375,7 @@
     document.getElementById('f-year').value   = v.year || '';
     document.getElementById('f-tags').value   = (v.tags||[]).join(', ');
     document.getElementById('f-thumb').value  = v.custom_thumb || '';
-    
+
     const p = document.getElementById('thumb-preview');
     if (v.custom_thumb) {
       p.src = v.custom_thumb;
@@ -428,7 +387,7 @@
     p.style.display = 'block';
     document.getElementById('modal-bg').classList.add('open');
   }
-  
+
   function closeModal() { document.getElementById('modal-bg').classList.remove('open'); editingId = null; }
   function bgCloseModal(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
 
@@ -443,13 +402,13 @@
       if (!document.getElementById('f-title').value) autoTitle(id);
     }
   }
-  
+
   function overrideThumb() {
     const url = document.getElementById('f-thumb').value.trim();
     const p   = document.getElementById('thumb-preview');
     if (url) { p.src=url; p.style.display='block'; } else previewThumb();
   }
-  
+
   async function autoTitle(id) {
     try {
       const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`);
@@ -478,7 +437,7 @@
       payload.sort_order = videos.length;
       ({ error } = await sb.from('mv_videos').insert([payload]));
     }
-    
+
     if (error) { toast('Error: '+error.message); return; }
     toast(editingId ? 'Updated ✓' : 'Added ✓');
     closeModal(); await loadVideos();
@@ -491,9 +450,6 @@
     if (!error) { toast('Deleted'); closeModal(); await loadVideos(); } else toast('Error: '+error.message);
   }
 
-  // ════════════════════════════════════════════════
-  // SETTINGS & COLORS
-  // ════════════════════════════════════════════════
   async function loadSettings() {
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     if (data && data.value) {
@@ -514,7 +470,7 @@
   function liveHeroOpacity(v) { document.querySelectorAll('.hero-thumb').forEach(img => { img.style.opacity = (v / 100).toFixed(2); }); window._heroOpacity = v / 100; }
   function liveHeroRowHeight(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.height = v + 'px'; }); }
   function liveHeroSpeed(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.animationDuration = v + 's'; }); }
-  
+
   async function saveHeroSettings() {
     if (!_ue) return;
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
@@ -530,7 +486,7 @@
     await sb.from('mv_settings').upsert({ key:'site', value: ex });
     toast('Hero settings saved ✓');
   }
-  
+
   function applyHeroSettings(s) {
     if (!s) return;
     const tt = document.getElementById('hero-title-text'); const st = document.getElementById('hero-subtitle-text');
@@ -553,7 +509,7 @@
     await sb.from('mv_settings').upsert({ key:'site', value:s });
     toast('Saved ✓');
   }
-  
+
   async function saveSiteTitle(val) {
     if(!_ue) return;
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
@@ -628,7 +584,7 @@
     });
     const map = { '--bg': 'cp-bg', '--text': 'cp-text', '--accent': 'cp-accent', '--muted': 'cp-muted', '--surface': 'cp-surface', '--border': 'cp-border', '--nav-bg': 'cp-nav', 'about-name-color': 'cp-about-name', 'about-role-color': 'cp-about-role', 'about-body-color': 'cp-about-body' };
     Object.entries(map).forEach(([k, inputId]) => { const el = document.getElementById(inputId); if(el) { el.value = DEFAULT_COLORS[k]; el.parentElement.style.background = DEFAULT_COLORS[k]; } });
-    
+
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     const ex = (data && data.value) || {};
     ex.colors = DEFAULT_COLORS;
@@ -673,7 +629,7 @@
         const dataUrl = canvas.toDataURL('image/png');
         setFavicon(dataUrl); await saveFavicon(dataUrl); toast('Favicon updated ✓');
       };
-      img.onerror = () => { setFavicon(url); saveFavicon(url); toast('Favicon set ✓ (direct URL)'); };
+      img.onerror = () => { setFavicon(url); saveFavicon(url); toast('Favicon set ✓'); };
       img.src = url;
     } catch(e) { setFavicon(url); await saveFavicon(url); toast('Favicon set ✓'); }
   }
@@ -688,17 +644,8 @@
 
   function loadFavicon(dataUrl) { if (!dataUrl) return; setFavicon(dataUrl); }
 
-  // ════════════════════════════════════════════════
-  // GO
-  // ════════════════════════════════════════════════
   init();
 
-  // ════════════════════════════════════════════════
-  // EXPOSE SAFE PUBLIC FUNCTIONS
-  // ════════════════════════════════════════════════
-  // Bagian ini adalah kunci! Kita hanya mendaftarkan fungsi-fungsi antarmuka
-  // ke dalam "window" agar atribut onclick="namaFungsi()" di HTML tetap bekerja.
-  // Tapi fungsi "_setEdit" (akses admin) dan semua data array TIDAK KITA EKSPOS.
   Object.assign(window, {
     showPage, toggleColorPanel, saveSiteTitle, applyColor, applyNavColor,
     applyDirectColor, saveColors, resetColors, handleFaviconFile, applyFaviconUrl,
@@ -709,4 +656,4 @@
     ctxYT, ctxDel, saveOrder, handleItemClick, openCtx, handleThumbErr
   });
 
-})(); // <-- Penutup IIFE
+})();
