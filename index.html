@@ -98,6 +98,29 @@
       margin-top: 52px;
     }
 
+    /* spacing gap between hero and filter bar */
+    #hero-spacer {
+      height: 48px;
+      background: var(--bg);
+      position: relative;
+    }
+    /* thin decorative line */
+    #hero-spacer::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 92%;
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent 0%,
+        var(--border) 15%,
+        rgba(255,255,255,0.18) 50%,
+        var(--border) 85%,
+        transparent 100%
+      );
+    }
+
     /* 3-row strip container — compact 50% smaller */
     .hero-rows {
       position: absolute; inset: 0;
@@ -184,7 +207,7 @@
       font-family: 'Doto', monospace;
       font-weight: 480;
       font-variation-settings: 'wght' 480;
-      font-size: clamp(3.2rem, 7.5vw, 7rem);
+      font-size: var(--hero-fs, clamp(3.2rem, 7.5vw, 7rem));
       letter-spacing: 0.06em;
       color: #fff;
       line-height: 1;
@@ -195,6 +218,7 @@
       white-space: nowrap;
       outline: none;
       cursor: default;
+      /* no transition so it doesn't animate on load */
     }
     .hero-subtitle {
       font-family: 'Josefin Slab', serif;
@@ -248,6 +272,7 @@
       z-index: 100;
       background: rgba(10,10,10,0.92);
       backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
 
@@ -928,6 +953,9 @@
     </div>
   </section>
 
+  <!-- SPACER + DIVIDER LINE -->
+  <div id="hero-spacer"></div>
+
   <!-- FILTER BAR -->
   <div class="filter-bar" id="filter-bar">
     <button class="filter-tag active" data-tag="ALL" onclick="filterTag(this)">ALL</button>
@@ -941,7 +969,7 @@
   </div>
 
   <!-- GRID -->
-  <div class="grid-wrap">
+  <div class="grid-wrap" style="padding-top:3px">
     <div class="masonry-grid" id="masonry-grid">
       <div class="loader"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     </div>
@@ -1612,8 +1640,12 @@ function liveHeroSubtitle(v) {
   if (el) el.textContent = v || 'motion designer';
 }
 function liveHeroSize(v) {
-  const el = document.getElementById('hero-title-text');
-  if (el) el.style.fontSize = v + 'rem';
+  // Use CSS variable so it applies before paint, no flash
+  document.documentElement.style.setProperty('--hero-fs', v + 'rem');
+  const sl = document.getElementById('hc-fontsize');
+  const lb = document.getElementById('hc-fontsize-val');
+  if (sl) sl.value = v;
+  if (lb) lb.textContent = v + 'rem';
 }
 function liveHeroOpacity(v) {
   document.querySelectorAll('.hero-thumb').forEach(img => {
@@ -1652,10 +1684,8 @@ function applyHeroSettings(s) {
   const st = document.getElementById('hero-subtitle-text');
   if (s.hero_title    && tt) { tt.textContent = s.hero_title;    const i=document.getElementById('hc-title');    if(i) i.value=s.hero_title; }
   if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
-  if (s.hero_fontsize)  {
+  if (s.hero_fontsize) {
     liveHeroSize(s.hero_fontsize);
-    const sl=document.getElementById('hc-fontsize'); if(sl) sl.value=s.hero_fontsize;
-    const lb=document.getElementById('hc-fontsize-val'); if(lb) lb.textContent=s.hero_fontsize+'rem';
   }
   if (s.hero_opacity !== undefined) {
     liveHeroOpacity(s.hero_opacity);
