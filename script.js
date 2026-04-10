@@ -16,7 +16,6 @@
   const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
   async function init() {
-    // Memuat settings dan videos secara paralel (bersamaan) agar jauh lebih cepat
     await Promise.all([
       loadSettings(),
       loadVideos()
@@ -151,11 +150,11 @@
     return null;
   }
 
-  function ytThumb(id, q='sddefault') {
+  function ytThumb(id, q='maxresdefault') {
     return `https://img.youtube.com/vi/${id}/${q}.jpg`;
   }
 
-  const THUMB_CHAIN = ['sddefault','hqdefault','mqdefault'];
+  const THUMB_CHAIN = ['maxresdefault','hqdefault','sddefault'];
   function handleThumbErr(img) {
     const cur = img.dataset.fallback ? parseInt(img.dataset.fallback) : 0;
     const next = cur + 1;
@@ -203,7 +202,7 @@
           oncontextmenu="openCtx(event,'${v.id}')">
         <div class="drag-handle" title="">⠿</div>
         <div class="item-edit-badge">EDIT</div>
-        <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/sddefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
+        <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/maxresdefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
           alt="${esc(v.title||'')}" loading="lazy"
           onerror="handleThumbErr(this)"/>
         <div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
@@ -385,7 +384,7 @@
     } else {
       p.dataset.ytid = v.yt_id; p.dataset.fallback = '0';
       p.onerror = function(){ handleThumbErr(this); };
-      p.src = ytThumb(v.yt_id, 'sddefault');
+      p.src = ytThumb(v.yt_id, 'maxresdefault');
     }
     p.style.display = 'block';
     document.getElementById('modal-bg').classList.add('open');
@@ -401,7 +400,7 @@
     if (id && !ovr) {
       p.dataset.ytid = id; p.dataset.fallback = '0';
       p.onerror = function(){ handleThumbErr(this); };
-      p.src = ytThumb(id, 'sddefault'); p.style.display='block';
+      p.src = ytThumb(id, 'maxresdefault'); p.style.display='block';
       if (!document.getElementById('f-title').value) autoTitle(id);
     }
   }
