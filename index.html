@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="style.css">
 
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
+    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
   </script>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
