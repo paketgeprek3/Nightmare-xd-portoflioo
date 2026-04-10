@@ -16,8 +16,11 @@
   const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
   async function init() {
-    await loadSettings();
-    await loadVideos();
+    // Memuat settings dan videos secara paralel (bersamaan) agar jauh lebih cepat
+    await Promise.all([
+      loadSettings(),
+      loadVideos()
+    ]);
 
     const { data: { session } } = await sb.auth.getSession();
     if (session) {
@@ -148,11 +151,11 @@
     return null;
   }
 
-  function ytThumb(id, q='maxresdefault') {
+  function ytThumb(id, q='sddefault') {
     return `https://img.youtube.com/vi/${id}/${q}.jpg`;
   }
 
-  const THUMB_CHAIN = ['maxresdefault','hqdefault','sddefault'];
+  const THUMB_CHAIN = ['sddefault','hqdefault','mqdefault'];
   function handleThumbErr(img) {
     const cur = img.dataset.fallback ? parseInt(img.dataset.fallback) : 0;
     const next = cur + 1;
@@ -200,7 +203,7 @@
           oncontextmenu="openCtx(event,'${v.id}')">
         <div class="drag-handle" title="">⠿</div>
         <div class="item-edit-badge">EDIT</div>
-        <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/maxresdefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
+        <img ${th ? `src="${th}"` : `src="https://img.youtube.com/vi/${ytid}/sddefault.jpg" data-ytid="${ytid}" data-fallback="0"`}
           alt="${esc(v.title||'')}" loading="lazy"
           onerror="handleThumbErr(this)"/>
         <div class="play-icon"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
@@ -224,7 +227,7 @@
     const rows = ['hero-row1','hero-row2','hero-row3'].map(id => document.getElementById(id));
     if (!rows[0]) return;
 
-    let base = videos.map(v => v.custom_thumb || `https://img.youtube.com/vi/${v.yt_id}/mqdefault.jpg`);
+    let base = videos.map(v => v.custom_thumb || `https://img.youtube.com/vi/${v.yt_id}/hqdefault.jpg`);
     if (base.length === 0) return;
     while (base.length < 12) base = [...base, ...base];
 
@@ -382,7 +385,7 @@
     } else {
       p.dataset.ytid = v.yt_id; p.dataset.fallback = '0';
       p.onerror = function(){ handleThumbErr(this); };
-      p.src = ytThumb(v.yt_id, 'maxresdefault');
+      p.src = ytThumb(v.yt_id, 'sddefault');
     }
     p.style.display = 'block';
     document.getElementById('modal-bg').classList.add('open');
@@ -398,7 +401,7 @@
     if (id && !ovr) {
       p.dataset.ytid = id; p.dataset.fallback = '0';
       p.onerror = function(){ handleThumbErr(this); };
-      p.src = ytThumb(id, 'maxresdefault'); p.style.display='block';
+      p.src = ytThumb(id, 'sddefault'); p.style.display='block';
       if (!document.getElementById('f-title').value) autoTitle(id);
     }
   }
@@ -629,7 +632,7 @@
         const dataUrl = canvas.toDataURL('image/png');
         setFavicon(dataUrl); await saveFavicon(dataUrl); toast('Favicon updated ✓');
       };
-      img.onerror = () => { setFavicon(url); saveFavicon(url); toast('Favicon set ✓'); };
+      img.onerror = () => { setFavicon(url); saveFavicon(url); toast('Favicon set ✓ (direct URL)'); };
       img.src = url;
     } catch(e) { setFavicon(url); await saveFavicon(url); toast('Favicon set ✓'); }
   }
