@@ -1,4 +1,17 @@
 (function() {
+  try {
+    const cache = localStorage.getItem('mv_settings_cache');
+    if (cache) {
+      const s = JSON.parse(cache);
+      if (s.hero_fontsize) document.documentElement.style.setProperty('--hero-fs', s.hero_fontsize + 'rem');
+      if (s.colors) {
+        Object.entries(s.colors).forEach(([k, v]) => {
+          if (k.startsWith('--') && k !== '--nav-bg') document.documentElement.style.setProperty(k, v);
+        });
+      }
+    }
+  } catch(e) {}
+
   const _SU = 'https://cfklprwibgmunquamsfd.supabase.co';
   const _SK = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
   const sb  = supabase.createClient(_SU, _SK);
@@ -456,6 +469,7 @@
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     if (data && data.value) {
       const s = data.value;
+      localStorage.setItem('mv_settings_cache', JSON.stringify(s));
       if (s.site_title) document.getElementById('site-title-input').value = s.site_title;
       if (s.about_name) document.getElementById('about-name').textContent = s.about_name;
       if (s.about_role) document.getElementById('about-role').textContent = s.about_role;
