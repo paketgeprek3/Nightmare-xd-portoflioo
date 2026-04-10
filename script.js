@@ -1,16 +1,9 @@
 // ════════════════════════════════════════════════
-// SUPABASE — hardcoded credentials
+// SUPABASE CREDENTIALS
 // ════════════════════════════════════════════════
 const _SU = 'https://cfklprwibgmunquamsfd.supabase.co';
 const _SK = 'sb_publishable_JnDvNVVSDG64KrnpbhYcIw_fAl9ZoYl';
 const sb  = supabase.createClient(_SU, _SK);
-
-// runtime integrity tokens
-const _a=[73,65,111,99,93,99,118,91,87,86,123,63,83,61,97,68,82,36,100,74,72,101,14,11];
-const _b=[29,22,3,23,62,36,26,50,51,14,49,14,50,14,9,47,51,22,49,50,4,2,51,54];
-const _PH=_a.map((c,i)=>String.fromCharCode(c^_b[i])).join('');
-const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
-const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
 // ════════════════════════════════════════════════
 // STATE
@@ -20,9 +13,13 @@ let currentTag = 'ALL';
 let editingId  = null;
 let ctxId      = null;
 let lbId       = null;
-let _ue=false;
+let _ue        = false;
 let keyBuf     = '';
 let keyTmr     = null;
+
+// Trigger admin dari ketikan rahasia (sekarang memanggil menu Supabase login)
+const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
+const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
 
 // ════════════════════════════════════════════════
 // INIT
@@ -30,6 +27,12 @@ let keyTmr     = null;
 async function init() {
   await loadSettings();
   await loadVideos();
+
+  // CEK JIKA SUDAH PERNAH LOGIN (SESI AKTIF)
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    _setEdit();
+  }
 
   sb.channel('vids').on('postgres_changes',
     { event:'*', schema:'public', table:'mv_videos' }, loadVideos).subscribe();
@@ -69,35 +72,66 @@ function onKey(e) {
 }
 
 // ════════════════════════════════════════════════
-// PASSWORD MODAL
+// PASSWORD MODAL (SUPABASE AUTH)
 // ════════════════════════════════════════════════
 function _unlock() {
+  document.getElementById('email-input').value = '';
   document.getElementById('pw-input').value = '';
   document.getElementById('pw-err').textContent = '';
+  document.getElementById('email-input').classList.remove('err');
   document.getElementById('pw-input').classList.remove('err');
   document.getElementById('fm-bg').classList.add('open');
-  setTimeout(() => document.getElementById('pw-input').focus(), 80);
+  setTimeout(() => document.getElementById('email-input').focus(), 80);
 }
+
 function _closePw() {
   document.getElementById('fm-bg').classList.remove('open');
 }
+
 function toggleEye() {
   const i = document.getElementById('pw-input');
   i.type = i.type === 'password' ? 'text' : 'password';
 }
-function _chk() {
-  const val = document.getElementById('pw-input').value;
-  if (btoa(val) === _PH) {
+
+async function _chk() {
+  const email = document.getElementById('email-input').value.trim();
+  const password = document.getElementById('pw-input').value;
+  const err = document.getElementById('pw-err');
+  const btn = document.querySelector('#fm-bg .btn-primary');
+
+  if (!email || !password) {
+    err.textContent = 'EMAIL AND PASSWORD REQUIRED';
+    return;
+  }
+
+  // UI state while loading
+  btn.textContent = 'WAIT...';
+  btn.disabled = true;
+  err.textContent = '';
+
+  // Auth Supabase
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: email,
+    password: password,
+  });
+
+  // Revert UI
+  btn.textContent = 'LOGIN';
+  btn.disabled = false;
+
+  if (error) {
+    const pwi = document.getElementById('pw-input');
+    const emi = document.getElementById('email-input');
+    pwi.classList.add('err');
+    emi.classList.add('err');
+    err.textContent = error.message.toUpperCase();
+    setTimeout(() => { pwi.classList.remove('err'); emi.classList.remove('err'); }, 380);
+  } else {
     _closePw();
     _setEdit();
-  } else {
-    const i = document.getElementById('pw-input');
-    i.classList.add('err');
-    document.getElementById('pw-err').textContent = 'INCORRECT PASSWORD';
-    setTimeout(() => i.classList.remove('err'), 380);
-    i.value = '';
   }
 }
+
 function _setEdit() {
   _ue=true;
   document.body.classList.add('edit-enabled');
@@ -105,18 +139,24 @@ function _setEdit() {
   initSortable();
   toast('Editor unlocked  ·  drag thumbnails to reorder');
 }
-function _lock() {
+
+async function _lock() {
+  // Logout Supabase session
+  await sb.auth.signOut();
+  
   _ue=false;
   document.body.classList.remove('edit-enabled');
   document.getElementById('e-dot').classList.remove('on');
   if (_sortable) { _sortable.destroy(); _sortable = null; }
   hideSaveBtn(); _orderChanged = false;
+  
   // Close and hide color panel
   const panel = document.getElementById('color-panel');
   const btn   = document.getElementById('cp-toggle-btn');
   if (panel) panel.classList.remove('open');
   if (btn)   btn.classList.remove('active');
-  toast('Editor locked');
+  
+  toast('Editor locked (Logged out)');
 }
 
 // ════════════════════════════════════════════════
@@ -159,9 +199,7 @@ async function loadVideos() {
     document.getElementById('masonry-grid').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">🎬</div>
-        <div class="empty-text">DB NOT SETUP<br><br>
-          <a href="#" onclick="showSQL()" style="color:var(--accent);text-decoration:none">CLICK FOR SETUP SQL</a>
-        </div>
+        <div class="empty-text">DB ERROR<br><br>Check Supabase RLS Policies.</div>
       </div>`;
     return;
   }
@@ -213,33 +251,24 @@ function esc(s) {
 }
 
 // ════════════════════════════════════════════════
-// HERO STRIPS — seamless infinite scroll, no glitch
-// KEY: each strip = [A, A] so translateX(-50%) loops perfectly
+// HERO STRIPS
 // ════════════════════════════════════════════════
 function populateHero() {
   const rows = ['hero-row1','hero-row2','hero-row3'].map(id => document.getElementById(id));
   if (!rows[0]) return;
 
-  // Base thumb list
   let base = videos.map(v =>
     v.custom_thumb || `https://img.youtube.com/vi/${v.yt_id}/mqdefault.jpg`
   );
   if (base.length === 0) return;
 
-  // Pad to at least 12 unique items so strips look full
   while (base.length < 12) base = [...base, ...base];
 
-  // Deterministic "shuffles" for each row using index offsets
-  // (no Math.random so it's consistent and won't re-trigger layout)
   const row0 = base;
   const row1 = [...base.slice(Math.floor(base.length/3)), ...base.slice(0, Math.floor(base.length/3))];
   const row2 = [...base.slice(Math.floor(base.length*2/3)), ...base.slice(0, Math.floor(base.length*2/3))];
   const sets = [row0, row1, row2];
 
-  // CRITICAL for seamless loop:
-  // Render the set TWICE back-to-back inside the strip.
-  // CSS animation: translateX(0) → translateX(-50%)
-  // When it snaps back to 0, it looks identical to -50% → seamless.
   const op = (window._heroOpacity !== undefined) ? window._heroOpacity : 0.4;
   function makeImgs(arr) {
     const imgs = arr.map(src =>
@@ -254,7 +283,7 @@ function populateHero() {
 }
 
 // ════════════════════════════════════════════════
-// DRAG CLICK GUARD — ignore click after drag
+// DRAG CLICK GUARD
 // ════════════════════════════════════════════════
 let _dragging = false;
 function handleItemClick(e, id) {
@@ -264,7 +293,7 @@ function handleItemClick(e, id) {
 }
 
 // ════════════════════════════════════════════════
-// SORTABLE — drag & drop reorder
+// SORTABLE
 // ════════════════════════════════════════════════
 let _sortable = null;
 let _orderChanged = false;
@@ -311,7 +340,6 @@ async function saveOrder() {
     sort_order: i
   }));
 
-  // Update each row's sort_order
   const promises = updates.map(u =>
     sb.from('mv_videos').update({ sort_order: u.sort_order }).eq('id', u.id)
   );
@@ -321,7 +349,6 @@ async function saveOrder() {
   if (hasError) {
     toast('Error saving order');
   } else {
-    // Update local state to reflect new order
     updates.forEach(u => {
       const v = videos.find(x => x.id === u.id);
       if (v) v.sort_order = u.sort_order;
@@ -536,8 +563,9 @@ async function loadSettings() {
     applyHeroSettings(s);
   }
 }
+
 // ════════════════════════════════════════════════
-// HERO LIVE CONTROLS (admin panel)
+// HERO LIVE CONTROLS
 // ════════════════════════════════════════════════
 function liveHeroTitle(v) {
   const el = document.getElementById('hero-title-text');
@@ -548,7 +576,6 @@ function liveHeroSubtitle(v) {
   if (el) el.textContent = v || 'motion designer';
 }
 function liveHeroSize(v) {
-  // Use CSS variable so it applies before paint, no flash
   document.documentElement.style.setProperty('--hero-fs', v + 'rem');
   const sl = document.getElementById('hc-fontsize');
   const lb = document.getElementById('hc-fontsize-val');
@@ -592,9 +619,7 @@ function applyHeroSettings(s) {
   const st = document.getElementById('hero-subtitle-text');
   if (s.hero_title    && tt) { tt.textContent = s.hero_title;    const i=document.getElementById('hc-title');    if(i) i.value=s.hero_title; }
   if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
-  if (s.hero_fontsize) {
-    liveHeroSize(s.hero_fontsize);
-  }
+  if (s.hero_fontsize) { liveHeroSize(s.hero_fontsize); }
   if (s.hero_opacity !== undefined) {
     liveHeroOpacity(s.hero_opacity);
     const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity;
@@ -643,50 +668,6 @@ function showPage(name, btn) {
 }
 
 // ════════════════════════════════════════════════
-// SQL SETUP POPUP
-// ════════════════════════════════════════════════
-function showSQL() {
-  const sql=`-- Run once in Supabase SQL Editor
-
-create table if not exists mv_videos (
-  id uuid primary key default gen_random_uuid(),
-  yt_id text not null, title text, artist text, year text,
-  tags text[] default '{}', custom_thumb text,
-  sort_order int default 0,
-  created_at timestamptz default now()
-);
-
-create table if not exists mv_settings (
-  key text primary key,
-  value jsonb
-);
-
-alter table mv_videos enable row level security;
-alter table mv_settings enable row level security;
-
-create policy "r" on mv_videos for select using (true);
-create policy "w" on mv_videos for all using (true) with check (true);
-create policy "r" on mv_settings for select using (true);
-create policy "w" on mv_settings for all using (true) with check (true);`;
-
-  const el = document.createElement('div');
-  el.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;display:flex;align-items:center;justify-content:center;';
-  el.innerHTML=`<div style="background:#111;border:1px solid #2a2a2a;padding:2rem;max-width:640px;width:94vw;position:relative">
-    <button onclick="this.closest('[style]').remove()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:#555;font-size:1.2rem;cursor:pointer">✕</button>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.12em;margin-bottom:.8rem">SUPABASE SETUP</div>
-    <p style="font-family:'Space Mono',monospace;font-size:.6rem;color:#666;margin-bottom:1rem;line-height:1.8">
-      1. Open Supabase → SQL Editor<br>2. Paste the SQL below → Run<br>3. Refresh this page
-    </p>
-    <textarea id="_sql" readonly style="width:100%;height:260px;background:#060606;border:1px solid #1e1e1e;color:#888;font-family:'Space Mono',monospace;font-size:.6rem;padding:.7rem;resize:none;outline:none">${sql}</textarea>
-    <button onclick="navigator.clipboard.writeText(document.getElementById('_sql').value);this.textContent='COPIED!'"
-      style="margin-top:.6rem;background:#fff;color:#000;border:none;padding:.42rem 1rem;font-family:'Space Mono',monospace;font-size:.62rem;cursor:pointer;letter-spacing:.1em;border-radius:2px">
-      COPY SQL
-    </button>
-  </div>`;
-  document.body.appendChild(el);
-}
-
-// ════════════════════════════════════════════════
 // TOAST
 // ════════════════════════════════════════════════
 let _tt;
@@ -696,7 +677,6 @@ function toast(msg) {
   clearTimeout(_tt);
   _tt = setTimeout(() => t.classList.remove('on'), 2400);
 }
-
 
 // ════════════════════════════════════════════════
 // COLOR CUSTOMIZER
@@ -722,7 +702,6 @@ function toggleColorPanel() {
   btn.classList.toggle('active', !isOpen);
 }
 
-// Close panel when clicking outside
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('color-panel');
   const btn   = document.getElementById('cp-toggle-btn');
@@ -736,10 +715,7 @@ document.addEventListener('click', (e) => {
 
 function applyColor(varName, value) {
   document.documentElement.style.setProperty(varName, value);
-  // Keep nav background in sync if bg changes
-  if (varName === '--bg') {
-    document.querySelector('nav').style.background = hexToRgba(value, 0.95);
-  }
+  if (varName === '--bg') { document.querySelector('nav').style.background = hexToRgba(value, 0.95); }
 }
 
 function applyNavColor(value) {
@@ -781,7 +757,6 @@ async function saveColors() {
 
 async function resetColors() {
   if (!confirm('Reset all colors to default?')) return;
-  // Apply defaults visually
   Object.entries(DEFAULT_COLORS).forEach(([k, v]) => {
     if (k.startsWith('--')) {
       document.documentElement.style.setProperty(k, v);
@@ -792,7 +767,6 @@ async function resetColors() {
       applyDirectColor(elId, 'color', v);
     }
   });
-  // Update swatches
   document.getElementById('cp-bg').value = DEFAULT_COLORS['--bg'];
   document.getElementById('cp-text').value = DEFAULT_COLORS['--text'];
   document.getElementById('cp-accent').value = DEFAULT_COLORS['--accent'];
@@ -803,12 +777,12 @@ async function resetColors() {
   document.getElementById('cp-about-name').value = DEFAULT_COLORS['about-name-color'];
   document.getElementById('cp-about-role').value = DEFAULT_COLORS['about-role-color'];
   document.getElementById('cp-about-body').value = DEFAULT_COLORS['about-body-color'];
-  // Update swatch backgrounds
+  
   ['cp-bg','cp-text','cp-accent','cp-muted','cp-surface','cp-border','cp-nav','cp-about-name','cp-about-role','cp-about-body'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.parentElement.style.background = el.value;
   });
-  // Save reset to DB
+  
   const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
   const ex = (data && data.value) || {};
   ex.colors = DEFAULT_COLORS;
@@ -828,36 +802,26 @@ function loadColors(colors) {
       applyDirectColor(elId, 'color', v);
     }
   });
-  // Sync color picker inputs & swatches
   const map = {
     '--bg': 'cp-bg', '--text': 'cp-text', '--accent': 'cp-accent',
     '--muted': 'cp-muted', '--surface': 'cp-surface', '--border': 'cp-border',
-    '--nav-bg': 'cp-nav',
-    'about-name-color': 'cp-about-name',
-    'about-role-color': 'cp-about-role',
-    'about-body-color': 'cp-about-body',
+    '--nav-bg': 'cp-nav', 'about-name-color': 'cp-about-name',
+    'about-role-color': 'cp-about-role', 'about-body-color': 'cp-about-body',
   };
   Object.entries(map).forEach(([k, inputId]) => {
     if (colors[k]) {
       const el = document.getElementById(inputId);
-      if (el) {
-        el.value = colors[k];
-        el.parentElement.style.background = colors[k];
-      }
+      if (el) { el.value = colors[k]; el.parentElement.style.background = colors[k]; }
     }
   });
 }
-
 
 // ════════════════════════════════════════════════
 // FAVICON CUSTOMIZER
 // ════════════════════════════════════════════════
 function setFavicon(dataUrl) {
-  // Update the <link> tag
   let link = document.getElementById('favicon-link');
   link.href = dataUrl;
-
-  // Update preview in panel
   const prev = document.getElementById('favicon-preview');
   if (prev) {
     prev.innerHTML = `<img src="${dataUrl}" style="width:28px;height:28px;object-fit:cover;border-radius:3px"/>`;
@@ -883,7 +847,6 @@ async function applyFaviconUrl() {
   const url = document.getElementById('favicon-url-input').value.trim();
   if (!url) { toast('Please enter an image URL'); return; }
 
-  // Convert URL to base64 via canvas to avoid CORS issues when saving
   try {
     const img = new Image();
     img.crossOrigin = 'anonymous';
@@ -898,7 +861,6 @@ async function applyFaviconUrl() {
       toast('Favicon updated ✓');
     };
     img.onerror = () => {
-      // If CORS fails, use the URL directly without saving as base64
       setFavicon(url);
       saveFavicon(url);
       toast('Favicon set ✓ (direct URL)');
