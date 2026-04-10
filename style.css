@@ -86,11 +86,11 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 @keyframes hScrollL { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 @keyframes hScrollR { from{transform:translateX(-50%)} to{transform:translateX(0)} }
 
-/* Penambahan efek BLUR tipis dan SCALE agar pinggiran tidak bocor */
+/* Blur dinaikkan menjadi 5px dan scale menjadi 1.03 */
 .hero-thumb {
   flex-shrink: 0; height: 100%; aspect-ratio: 16/9; object-fit: cover;
-  opacity: 0.4; filter: saturate(0.75) brightness(0.55) blur(2.5px); border-radius: 3px;
-  transform: scale(1.02);
+  opacity: 0.4; filter: saturate(0.75) brightness(0.55) blur(5px); border-radius: 3px;
+  transform: scale(1.03); 
 }
 
 #hero::before {
