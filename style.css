@@ -66,10 +66,16 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 #page-about { padding-top:52px; }
 .page.active { display:block; }
 
+
+/* ═══════════════════════════════
+   HERO SECTION (3D ROLL FILM)
+═══════════════════════════════ */
 #hero {
-  position: relative; width: 100%; height: 58vh;
-  min-height: 370px; overflow: hidden; display: flex;
+  position: relative; width: 100%; height: 62vh;
+  min-height: 420px; overflow: hidden; display: flex;
   align-items: center; justify-content: center; margin-top: 52px;
+  /* Cinematic spotlight background */
+  background: radial-gradient(circle at center, #151515 0%, var(--bg) 100%);
 }
 #hero-spacer { height: 48px; background: var(--bg); position: relative; }
 #hero-spacer::after {
@@ -78,63 +84,80 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
   background: linear-gradient(to right, transparent 0%, var(--border) 15%, rgba(255,255,255,0.18) 50%, var(--border) 85%, transparent 100%);
 }
 
-.hero-rows { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 0; }
-.hero-strip { height: var(--hero-rh, 110px); flex-shrink: 0; display: flex; gap: 12px; align-items: stretch; will-change: transform; }
-.hero-strip.row1 { animation: hScrollL var(--hero-sp, 96s) linear infinite; }
-.hero-strip.row2 { animation: hScrollR var(--hero-sp, 96s) linear infinite; }
-.hero-strip.row3 { animation: hScrollL var(--hero-sp, 96s) linear infinite; }
+/* Membungkus lajur roll film dengan efek 3D melengkung secara elegan */
+.film-container {
+  position: absolute; display: flex; flex-direction: column; justify-content: center;
+  gap: 24px; width: 130vw;
+  transform: perspective(1000px) rotateY(-10deg) rotateX(2deg) rotateZ(-3deg) scale(1.1);
+}
+
+/* Bentuk Roll Film Hitam berlubang */
+.film-track {
+  height: var(--hero-rh, 160px);
+  display: flex; gap: 16px; padding: 28px 0;
+  background: #020202; position: relative;
+  border-top: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+  will-change: transform;
+}
+.film-track.row1 { animation: hScrollL var(--hero-sp, 96s) linear infinite; }
+.film-track.row2 { animation: hScrollR var(--hero-sp, 96s) linear infinite; }
 
 @keyframes hScrollL { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 @keyframes hScrollR { from{transform:translateX(-50%)} to{transform:translateX(0)} }
 
-.hero-thumb {
-  flex-shrink: 0; height: 100%; aspect-ratio: 16/9; object-fit: cover;
-  opacity: var(--hero-op, 0.4); 
-  filter: saturate(0.75) brightness(0.55) blur(1.5px); border-radius: 8px;
+/* Lubang Film di atas dan bawah (Perforations) */
+.film-track::before, .film-track::after {
+  content: ''; position: absolute; left: 0; width: 200%; height: 12px;
+  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 12px, transparent 12px, transparent 24px);
+  z-index: 5; pointer-events: none;
+}
+.film-track::before { top: 6px; }
+.film-track::after { bottom: 6px; }
+
+/* Item Gambar Thumbnail di dalam Film */
+.film-frame {
+  flex-shrink: 0; height: 100%; aspect-ratio: 16/9; position: relative;
+  cursor: pointer; border-radius: 8px; overflow: hidden;
+  opacity: var(--hero-op, 0.6);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
+/* Gambar sedikit di redupkan */
+.film-frame img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  filter: saturate(0.8) brightness(0.6); transition: all 0.3s;
+}
+
+/* Saat di-hover, gambar membesar, bercahaya, dan icon play muncul */
+.film-frame:hover {
+  opacity: 1; transform: scale(1.05); z-index: 20;
+  border-color: rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+}
+.film-frame:hover img { filter: saturate(1.1) brightness(1.1); }
+
+.ff-play {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.ff-play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
+.film-frame:hover .ff-play { transform: translate(-50%, -50%) scale(1); }
+
+/* Gradasi pinggir layar agar roll film seolah menyatu ke dalam kegelapan */
 #hero::before {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to bottom, var(--bg) 0%, transparent 18%, transparent 82%, var(--bg) 100%);
-  pointer-events: none; z-index: 1;
-}
-#hero::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to right, rgba(10,10,10,0.7) 0%, transparent 15%, transparent 85%, rgba(10,10,10,0.7) 100%),
-              radial-gradient(ellipse at center, transparent 30%, rgba(10,10,10,0.45) 100%);
-  pointer-events: none; z-index: 1;
+  background: linear-gradient(to right, var(--bg) 0%, transparent 15%, transparent 85%, var(--bg) 100%);
+  pointer-events: none; z-index: 10;
 }
 
-.hero-center {
-  position: relative; z-index: 2; display: flex; flex-direction: column;
-  align-items: center; gap: 0; text-align: center; animation: heroFadeIn 1.4s ease both;
-}
-@keyframes heroFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-
-.hero-title {
-  font-family: 'Doto', monospace; font-weight: 480; font-variation-settings: 'wght' 480;
-  font-size: var(--hero-fs, clamp(3.2rem, 7.5vw, 7rem)); letter-spacing: 0.06em;
-  color: #fff; line-height: 1;
-  text-shadow: 0 0 40px rgba(255,255,255,0.18), 0 0 80px rgba(255,255,255,0.07), 0 2px 30px rgba(0,0,0,0.9);
-  white-space: nowrap; outline: none; cursor: default;
-}
-.hero-subtitle {
-  font-family: 'Josefin Slab', serif; font-weight: 250; font-style: italic;
-  font-size: clamp(0.85rem, 2vw, 1.25rem); letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
-  text-transform: lowercase; margin-top: 0.6rem; text-shadow: 0 1px 12px rgba(0,0,0,0.8);
-  white-space: nowrap; outline: none; cursor: default;
-}
-
-body.edit-enabled .hero-title, body.edit-enabled .hero-subtitle { cursor: text; pointer-events: all; }
-body.edit-enabled .hero-title:hover, body.edit-enabled .hero-subtitle:hover { outline: 1px dashed rgba(255,255,255,0.25); outline-offset: 6px; }
-body.edit-enabled .hero-title:focus, body.edit-enabled .hero-subtitle:focus { outline: 1px solid rgba(255,255,255,0.5); outline-offset: 6px; }
-.hero-title, .hero-subtitle { pointer-events: none; }
-
-.hero-scroll-hint {
-  font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 0.28em;
-  color: rgba(255,255,255,0.28); margin-top: 2rem; animation: pulse 2.8s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100% { opacity:0.25; } 50% { opacity:0.65; } }
+/* ═══════════════════════════════
+   END HERO SECTION
+═══════════════════════════════ */
 
 .filter-bar {
   position: sticky; top: 52px; z-index: 100; background: rgba(10,10,10,0.92);
