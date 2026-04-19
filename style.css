@@ -66,15 +66,14 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 #page-about { padding-top:52px; }
 .page.active { display:block; }
 
-
 /* ═══════════════════════════════
-   HERO SECTION (SPLIT SCREEN)
+   HERO SECTION (POLAROID SPREAD)
 ═══════════════════════════════ */
 #hero {
   position: relative; width: 100%; height: 80vh; min-height: 500px;
   display: flex; align-items: center; justify-content: space-between;
   margin-top: 52px; overflow: hidden;
-  background: radial-gradient(circle at 75% 50%, #15151a 0%, var(--bg) 60%);
+  background: radial-gradient(circle at 30% 50%, #161616 0%, var(--bg) 80%);
 }
 
 #hero-spacer { height: 48px; background: var(--bg); position: relative; }
@@ -84,80 +83,44 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
   background: linear-gradient(to right, transparent 0%, var(--border) 15%, rgba(255,255,255,0.18) 50%, var(--border) 85%, transparent 100%);
 }
 
-/* KIRI: VERTICAL ROLL FILM */
+/* KIRI: SCATTERED POLAROIDS */
 .hero-left {
-  width: 50%; height: 100%; position: relative;
-  perspective: 1200px; display: flex; justify-content: center; align-items: center;
-  /* Membuat ujung atas dan bawah film memudar halus */
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  width: 60%; height: 100%; position: relative;
 }
 
-.film-waterfall {
-  display: flex; gap: 20px; height: 300%;
-  transform: rotateY(25deg) rotateX(10deg) rotateZ(-5deg);
-  transform-style: preserve-3d;
-}
-
-.film-track-v {
-  width: var(--hero-rh, 220px); 
-  display: flex; flex-direction: column; gap: 15px; padding: 0 25px; 
-  background: #050505; position: relative;
-  border-left: 2px solid #1a1a1a; border-right: 2px solid #1a1a1a;
-  box-shadow: -20px 0 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.8);
+.polaroid-wrapper {
+  position: absolute;
   will-change: transform;
 }
 
-/* Vertical Perforations (Lubang Film Kiri Kanan) */
-.film-track-v::before, .film-track-v::after {
-  content: ''; position: absolute; top: 0; width: 12px; height: 100%;
-  background-image: repeating-linear-gradient(180deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 12px, transparent 12px, transparent 24px);
-  z-index: 5; pointer-events: none;
-}
-.film-track-v::before { left: 6px; }
-.film-track-v::after { right: 6px; }
-
-/* Animasi turun naik secara vertikal */
-.film-track-v.col1 { animation: vScrollUp var(--hero-sp, 96s) linear infinite; }
-.film-track-v.col2 { animation: vScrollDown var(--hero-sp, 96s) linear infinite; }
-
-@keyframes vScrollUp { from{transform:translateY(0)} to{transform:translateY(-50%)} }
-@keyframes vScrollDown { from{transform:translateY(-50%)} to{transform:translateY(0)} }
-
-.film-frame-v {
-  flex-shrink: 0; width: 100%; aspect-ratio: 16/9; position: relative;
-  cursor: pointer; border-radius: 6px; overflow: hidden;
-  opacity: var(--hero-op, 0.7);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
+.polaroid-item {
+  background: #fdfdfd;
+  padding: 6px 6px 24px 6px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  border-radius: 2px;
+  opacity: var(--hero-op, 0.8);
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s, opacity 0.3s;
+  cursor: pointer;
 }
 
-.film-frame-v img {
+.polaroid-item img {
   width: 100%; height: 100%; object-fit: cover; display: block;
-  filter: saturate(0.8) brightness(0.6) blur(1.5px); transition: all 0.4s;
+  background: #111; border: 1px solid #ddd;
 }
 
-.film-frame-v:hover {
-  opacity: 1; transform: scale(1.08) translateZ(40px); z-index: 20;
-  border-color: rgba(255,255,255,0.4); box-shadow: 0 15px 40px rgba(0,0,0,0.9);
+.polaroid-wrapper:hover {
+  z-index: 999 !important;
 }
-.film-frame-v:hover img { filter: saturate(1.1) brightness(1.1) blur(0px); }
 
-.ff-play {
-  position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  width: 44px; height: 44px;
-  background: rgba(255,255,255,0.15); backdrop-filter: blur(4px);
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+.polaroid-wrapper:hover .polaroid-item {
+  transform: scale(1.15) translateY(-15px);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+  opacity: 1;
 }
-.ff-play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
-.film-frame-v:hover .ff-play { transform: translate(-50%, -50%) scale(1); }
 
 /* KANAN: TEXT LOGO */
 .hero-right {
-  width: 50%; padding-right: 5%; display: flex; flex-direction: column;
+  width: 40%; padding-right: 5%; display: flex; flex-direction: column;
   align-items: flex-end; justify-content: center; text-align: right;
   z-index: 2; animation: heroFadeInRight 1.4s ease both;
 }
@@ -187,6 +150,12 @@ body.edit-enabled .hero-title:focus, body.edit-enabled .hero-subtitle:focus { ou
   color: rgba(255,255,255,0.28); margin-top: 3rem; animation: pulse 2.8s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100% { opacity:0.25; } 50% { opacity:0.65; } }
+
+/* Admin custom item lists */
+.cp-cust-item { display:flex; align-items:center; justify-content:space-between; background:var(--surface); padding:0.3rem; border-radius:2px; border:1px solid var(--border); }
+.cp-cust-item img { width:32px; height:24px; object-fit:cover; border-radius:2px; }
+.cp-cust-del { cursor:pointer; color:var(--muted); border:none; background:none; font-size:0.8rem; padding:0 0.2rem; }
+.cp-cust-del:hover { color:var(--red); }
 
 /* ═══════════════════════════════
    END HERO SECTION
@@ -218,6 +187,15 @@ body.edit-enabled .hero-title:focus, body.edit-enabled .hero-subtitle:focus { ou
 .item-title { font-family:'Noto Sans JP',sans-serif; font-size:0.78rem; font-weight:500; color:#fff; line-height:1.4; margin-bottom:0.25rem; }
 .item-tags { display:flex; gap:0.3rem; flex-wrap:wrap; }
 .item-tag { font-family:'Space Mono',monospace; font-size:0.55rem; letter-spacing:0.1em; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.1); padding:0.15rem 0.4rem; border-radius:2px; }
+
+/* Menyesuaikan posisi play icon agar pas saat dirender di polaroid custom */
+.ff-play {
+  position:absolute; top:40%; left:50%; transform:translate(-50%,-50%);
+  width:32px; height:32px; background:rgba(0,0,0,0.5); backdrop-filter:blur(2px);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+}
+.ff-play svg { width:12px; height:12px; fill:#fff; margin-left:2px; }
+
 .play-icon {
   position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0);
   width:44px; height:44px; background:rgba(255,255,255,0.15); backdrop-filter:blur(4px);
@@ -367,9 +345,8 @@ body.edit-enabled .about-hint { display:block; }
 @media(max-width:768px){ 
   nav { padding:0 1.2rem; } .filter-bar { padding:.75rem 1rem; } .masonry-grid { grid-template-columns: repeat(2, 1fr); }
   #hero { flex-direction: column; justify-content: center; align-items: center; }
-  .hero-left { width: 100%; height: 60%; mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%); }
-  .hero-right { width: 100%; align-items: center; text-align: center; padding: 0; margin-top: -50px; }
-  .film-waterfall { transform: rotateY(15deg) rotateX(15deg) rotateZ(0deg); }
+  .hero-left { width: 100%; height: 60%; margin-top: 2rem; }
+  .hero-right { width: 100%; align-items: center; text-align: center; padding: 0; }
 }
 @media(max-width:480px){ .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
 
@@ -377,7 +354,7 @@ body.edit-enabled .about-hint { display:block; }
 body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; gap: 0.4rem; }
 #cp-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
 #cp-toggle-btn.active { border-color: var(--green); color: var(--green); }
-#color-panel { display: none; position: fixed; top: 62px; right: 16px; z-index: 450; background: #0e0e0e; border: 1px solid #2a2a2a; border-radius: 6px; width: 240px; padding: 1.2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.7); animation: slideIn 0.18s ease; max-height: calc(100vh - 80px); overflow-y: auto; }
+#color-panel { display: none; position: fixed; top: 62px; right: 16px; z-index: 450; background: #0e0e0e; border: 1px solid #2a2a2a; border-radius: 6px; width: 250px; padding: 1.2rem; box-shadow: 0 8px 32px rgba(0,0,0,0.7); animation: slideIn 0.18s ease; max-height: calc(100vh - 80px); overflow-y: auto; }
 #color-panel::-webkit-scrollbar { width: 2px; }
 #color-panel::-webkit-scrollbar-thumb { background: #333; }
 @keyframes slideIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
