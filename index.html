@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Doto:wght@100..900&family=Josefin+Slab:ital,wght@0,250;1,250&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=block" rel="stylesheet"/>
   <link rel="stylesheet" href="style.css">
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
+    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
   </script>
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -172,13 +172,6 @@
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
       <input type="range" id="hc-rotation" min="5" max="60" step="1" value="25" style="flex:1;accent-color:#fff" oninput="document.getElementById('hc-rot-val').textContent=this.value+'°'; populateHero();"/>
       <span id="hc-rot-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:1.5rem">25°</span>
-    </div>
-  </div>
-  <div class="cp-row">
-    <div class="cp-label">Opacity (0–100%)</div>
-    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="100" style="flex:1;accent-color:#fff" oninput="liveHeroOpacity(this.value);document.getElementById('hc-opacity-val').textContent=this.value+'%'"/>
-      <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">100%</span>
     </div>
   </div>
 
