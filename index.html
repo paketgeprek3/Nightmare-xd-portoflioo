@@ -132,7 +132,31 @@
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
   <div class="cp-divider"></div>
   
-  <div class="cp-title">HERO PREVIEW <span>● ROLL FILM</span></div>
+  <div class="cp-title">HERO TEXT <span>● LOGO</span></div>
+  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem">
+    <div class="cp-label">Main Title</div>
+    <input type="text" id="hc-title" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="Nightmare XD"
+      oninput="liveHeroTitle(this.value)"/>
+  </div>
+  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem;margin-top:0.5rem">
+    <div class="cp-label">Subtitle</div>
+    <input type="text" id="hc-subtitle" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="motion designer"
+      oninput="liveHeroSubtitle(this.value)"/>
+  </div>
+  <div class="cp-row" style="margin-top:0.6rem">
+    <div class="cp-label">Title Size</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-fontsize" min="2" max="12" step="0.1" value="7"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroSize(this.value);document.getElementById('hc-fontsize-val').textContent=this.value+'rem'"/>
+      <span id="hc-fontsize-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:3rem">7rem</span>
+    </div>
+  </div>
+  <div class="cp-divider"></div>
+
+  <div class="cp-title">HERO PREVIEW <span>● VERTICAL FILM</span></div>
   <div class="cp-row">
     <div class="cp-label">Opacity (0–100%)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
@@ -143,12 +167,12 @@
     </div>
   </div>
   <div class="cp-row">
-    <div class="cp-label">Row Height (zoom)</div>
+    <div class="cp-label">Film Width (zoom)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-rowheight" min="80" max="300" step="5" value="160"
+      <input type="range" id="hc-rowheight" min="100" max="400" step="5" value="220"
         style="flex:1;accent-color:#fff"
         oninput="liveHeroRowHeight(this.value);document.getElementById('hc-rh-val').textContent=this.value+'px'"/>
-      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">160px</span>
+      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">220px</span>
     </div>
   </div>
   <div class="cp-row">
@@ -160,18 +184,22 @@
       <span id="hc-speed-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">96s</span>
     </div>
   </div>
-  <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE ROLL FILM SETTINGS</button>
+  <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE HERO SETTINGS</button>
 </div>
 
 <div id="page-works" class="page active">
   <section id="hero">
-    <div class="film-container">
-      <div class="film-wave wave1">
-        <div class="film-track row1" id="hero-row1"></div>
+    <div class="hero-left">
+      <div class="film-waterfall">
+        <div class="film-track-v col1" id="hero-col1"></div>
+        <div class="film-track-v col2" id="hero-col2"></div>
       </div>
-      <div class="film-wave wave2">
-        <div class="film-track row2" id="hero-row2"></div>
-      </div>
+    </div>
+    
+    <div class="hero-right">
+      <div class="hero-title" id="hero-title-text" spellcheck="false">Nightmare XD</div>
+      <div class="hero-subtitle" id="hero-subtitle-text" spellcheck="false">motion designer</div>
+      <div class="hero-scroll-hint">▼ &nbsp; SCROLL TO EXPLORE</div>
     </div>
   </section>
 
