@@ -223,8 +223,8 @@
   }
 
   function populateHero() {
-    const rows = ['hero-row1','hero-row2'].map(id => document.getElementById(id));
-    if (!rows[0]) return;
+    const cols = ['hero-col1','hero-col2'].map(id => document.getElementById(id));
+    if (!cols[0]) return;
 
     let base = videos.map(v => ({
       id: v.id,
@@ -234,21 +234,22 @@
     if (base.length === 0) return;
     while (base.length < 12) base = [...base, ...base];
 
-    const row0 = base;
-    const row1 = [...base.slice(Math.floor(base.length/2)), ...base.slice(0, Math.floor(base.length/2))];
-    const sets = [row0, row1];
+    const col1Data = base;
+    const col2Data = [...base.slice(Math.floor(base.length/2)), ...base.slice(0, Math.floor(base.length/2))];
 
     function makeImgs(arr) {
       const html = arr.map(item => `
-        <div class="film-frame" onclick="openLb('${item.id}')">
+        <div class="film-frame-v" onclick="openLb('${item.id}')">
           <img src="${item.src}" alt="" loading="lazy" onerror="this.style.display='none'">
           <div class="ff-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
         </div>
       `).join('');
+      // Duplikasi elemen persis seperti cara kerja seamless slider original
       return html + html;
     }
 
-    rows.forEach((row, i) => { if (row) row.innerHTML = makeImgs(sets[i]); });
+    cols[0].innerHTML = makeImgs(col1Data);
+    if (cols[1]) cols[1].innerHTML = makeImgs(col2Data);
   }
 
   let _dragging = false;
@@ -474,6 +475,9 @@
     }
   }
 
+  function liveHeroTitle(v) { const el = document.getElementById('hero-title-text'); if (el) el.textContent = v || 'Nightmare XD'; }
+  function liveHeroSubtitle(v) { const el = document.getElementById('hero-subtitle-text'); if (el) el.textContent = v || 'motion designer'; }
+  function liveHeroSize(v) { document.documentElement.style.setProperty('--hero-fs', v + 'rem'); const sl = document.getElementById('hc-fontsize'); const lb = document.getElementById('hc-fontsize-val'); if (sl) sl.value = v; if (lb) lb.textContent = v + 'rem'; }
   function liveHeroOpacity(v) { document.documentElement.style.setProperty('--hero-op', v / 100); }
   function liveHeroRowHeight(v) { document.documentElement.style.setProperty('--hero-rh', v + 'px'); }
   function liveHeroSpeed(v) { document.documentElement.style.setProperty('--hero-sp', v + 's'); }
@@ -482,6 +486,11 @@
     if (!_ue) return;
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     const ex = (data && data.value) || {};
+    const titleEl    = document.getElementById('hero-title-text');
+    const subtitleEl = document.getElementById('hero-subtitle-text');
+    ex.hero_title    = (document.getElementById('hc-title').value.trim())    || (titleEl    ? titleEl.textContent    : 'Nightmare XD');
+    ex.hero_subtitle = (document.getElementById('hc-subtitle').value.trim()) || (subtitleEl ? subtitleEl.textContent : 'motion designer');
+    ex.hero_fontsize  = document.getElementById('hc-fontsize').value;
     ex.hero_opacity   = document.getElementById('hc-opacity').value;
     ex.hero_rowheight = document.getElementById('hc-rowheight').value;
     ex.hero_speed     = document.getElementById('hc-speed').value;
@@ -491,6 +500,10 @@
 
   function applyHeroSettings(s) {
     if (!s) return;
+    const tt = document.getElementById('hero-title-text'); const st = document.getElementById('hero-subtitle-text');
+    if (s.hero_title && tt) { tt.textContent = s.hero_title; const i=document.getElementById('hc-title'); if(i) i.value=s.hero_title; }
+    if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
+    if (s.hero_fontsize) { liveHeroSize(s.hero_fontsize); }
     if (s.hero_opacity !== undefined) { liveHeroOpacity(s.hero_opacity); const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity; const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=s.hero_opacity+'%'; }
     if (s.hero_rowheight) { liveHeroRowHeight(s.hero_rowheight); const sl=document.getElementById('hc-rowheight'); if(sl) sl.value=s.hero_rowheight; const lb=document.getElementById('hc-rh-val'); if(lb) lb.textContent=s.hero_rowheight+'px'; }
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
@@ -647,7 +660,7 @@
   Object.assign(window, {
     showPage, toggleColorPanel, saveSiteTitle, applyColor, applyNavColor,
     applyDirectColor, saveColors, resetColors, handleFaviconFile, applyFaviconUrl,
-    liveHeroOpacity, liveHeroRowHeight,
+    liveHeroTitle, liveHeroSubtitle, liveHeroSize, liveHeroOpacity, liveHeroRowHeight,
     liveHeroSpeed, saveHeroSettings, filterTag, saveAbout, openAddModal,
     toggleEye, _closePw, _chk, closeModal, previewThumb, overrideThumb,
     deleteItem, saveItem, bgCloseModal, closeLb, editFromLb, ctxEdit,
