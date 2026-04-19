@@ -11,6 +11,8 @@
   let _ue        = false;
   let keyBuf     = '';
   let keyTmr     = null;
+  
+  let customPolaroids = [];
 
   const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
   const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
@@ -177,6 +179,7 @@
     }
     videos = data || [];
     renderGrid();
+    if (videos.length > 0) populateHero();
   }
 
   function renderGrid() {
@@ -215,42 +218,141 @@
 
     buildTags();
     initSortable();
-    populateHero();
   }
 
   function esc(s) {
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // ════════════════════════════════════════════════
+  // POLAROID HERO GENERATOR
+  // ════════════════════════════════════════════════
   function populateHero() {
-    const cols = ['hero-col1','hero-col2'].map(id => document.getElementById(id));
-    if (!cols[0]) return;
-
-    let base = videos.map(v => ({
-      id: v.id,
-      src: v.custom_thumb || `https://img.youtube.com/vi/${v.yt_id}/hqdefault.jpg`
-    }));
+    const container = document.getElementById('polaroid-container');
+    if (!container) return;
     
-    if (base.length === 0) return;
-    while (base.length < 12) base = [...base, ...base];
+    let srcMode = 'random';
+    const radio = document.querySelector('input[name="hero-src"]:checked');
+    if(radio) srcMode = radio.value;
 
-    const col1Data = base;
-    const col2Data = [...base.slice(Math.floor(base.length/2)), ...base.slice(0, Math.floor(base.length/2))];
-
-    function makeImgs(arr) {
-      const html = arr.map(item => `
-        <div class="film-frame-v" onclick="openLb('${item.id}')">
-          <img src="${item.src}" alt="" loading="lazy" onerror="this.style.display='none'">
-          <div class="ff-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
-        </div>
-      `).join('');
-      // Duplikasi elemen persis seperti cara kerja seamless slider original
-      return html + html;
+    let items = [];
+    if (srcMode === 'custom' && customPolaroids.length > 0) {
+      items = customPolaroids;
+    } else if (videos.length > 0) {
+      items = videos.map(v => ({ id: v.id, src: v.custom_thumb || ytThumb(v.yt_id, 'hqdefault') }));
+    }
+    
+    if (items.length === 0) {
+       container.innerHTML = '';
+       return;
     }
 
-    cols[0].innerHTML = makeImgs(col1Data);
-    if (cols[1]) cols[1].innerHTML = makeImgs(col2Data);
+    const density = parseInt(document.getElementById('hc-density').value) || 15;
+    const rotVar = parseInt(document.getElementById('hc-rotation').value) || 20;
+    
+    let polaroidHtml = '';
+    const aspectRatios = ['1/1', '4/3', '3/4', '16/9'];
+
+    for (let i = 0; i < density; i++) {
+      const item = items[i % items.length];
+      
+      const posX = Math.floor(Math.random() * 70) + 15; 
+      const posY = Math.floor(Math.random() * 70) + 15;
+      const rot = Math.floor(Math.random() * (rotVar * 2)) - rotVar; 
+      const width = Math.floor(Math.random() * 80) + 120;
+      const ratio = aspectRatios[Math.floor(Math.random() * aspectRatios.length)];
+      const z = i + 10;
+      
+      const style = `left: ${posX}%; top: ${posY}%; width: ${width}px; transform: translate(-50%, -50%) rotate(${rot}deg); z-index: ${z};`;
+      
+      let clickAction = '';
+      let playIcon = '';
+      
+      if (item.id && videos.find(v => v.id === item.id)) {
+        clickAction = `onclick="openLb('${item.id}')"`;
+        playIcon = `<div class="ff-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`;
+      } else if (item.id) {
+        clickAction = `onclick="openDirectLb('${item.id}')"`;
+        playIcon = `<div class="ff-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>`;
+      }
+
+      polaroidHtml += `
+        <div class="polaroid-wrapper" style="${style}">
+          <div class="polaroid-item" ${clickAction}>
+            <div style="width:100%; aspect-ratio:${ratio}; position:relative; overflow:hidden;">
+               <img src="${item.src}" loading="lazy" onerror="this.style.display='none'">
+               ${playIcon}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    container.innerHTML = polaroidHtml;
   }
+
+  // ════════════════════════════════════════════════
+  // CUSTOM POLAROID ADMIN CONTROLS
+  // ════════════════════════════════════════════════
+  function toggleHeroSrc() {
+    const val = document.querySelector('input[name="hero-src"]:checked').value;
+    document.getElementById('custom-src-panel').style.display = val === 'custom' ? 'flex' : 'none';
+    populateHero();
+  }
+
+  function addCustomPolaroidUrl() {
+    const input = document.getElementById('custom-yt-input');
+    const raw = input.value.trim();
+    if(!raw) return;
+    
+    const ytid = ytId(raw);
+    if(ytid) {
+      customPolaroids.push({ id: ytid, src: ytThumb(ytid, 'hqdefault') });
+    } else {
+      customPolaroids.push({ id: null, src: raw });
+    }
+    input.value = '';
+    renderCustomPolaroidsList();
+    populateHero();
+  }
+
+  function addCustomPolaroidFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      customPolaroids.push({ id: null, src: e.target.result });
+      renderCustomPolaroidsList();
+      populateHero();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeCustomPolaroid(index) {
+    customPolaroids.splice(index, 1);
+    renderCustomPolaroidsList();
+    populateHero();
+  }
+
+  function renderCustomPolaroidsList() {
+    const list = document.getElementById('custom-polaroid-list');
+    list.innerHTML = customPolaroids.map((p, i) => `
+      <div class="cp-cust-item">
+        <img src="${p.src}">
+        <button class="cp-cust-del" onclick="removeCustomPolaroid(${i})">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function openDirectLb(ytid) {
+    lbId = null;
+    document.getElementById('lb-iframe').src = `https://www.youtube.com/embed/${ytid}?autoplay=1&rel=0`;
+    document.getElementById('lb-title').textContent = 'Custom Hero Video';
+    document.getElementById('lb-sub').textContent = '';
+    document.getElementById('lb-ytlink').href = `https://www.youtube.com/watch?v=${ytid}`;
+    document.getElementById('lightbox-bg').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
 
   let _dragging = false;
   function handleItemClick(e, id) {
@@ -479,8 +581,6 @@
   function liveHeroSubtitle(v) { const el = document.getElementById('hero-subtitle-text'); if (el) el.textContent = v || 'motion designer'; }
   function liveHeroSize(v) { document.documentElement.style.setProperty('--hero-fs', v + 'rem'); const sl = document.getElementById('hc-fontsize'); const lb = document.getElementById('hc-fontsize-val'); if (sl) sl.value = v; if (lb) lb.textContent = v + 'rem'; }
   function liveHeroOpacity(v) { document.documentElement.style.setProperty('--hero-op', v / 100); }
-  function liveHeroRowHeight(v) { document.documentElement.style.setProperty('--hero-rh', v + 'px'); }
-  function liveHeroSpeed(v) { document.documentElement.style.setProperty('--hero-sp', v + 's'); }
 
   async function saveHeroSettings() {
     if (!_ue) return;
@@ -492,8 +592,13 @@
     ex.hero_subtitle = (document.getElementById('hc-subtitle').value.trim()) || (subtitleEl ? subtitleEl.textContent : 'motion designer');
     ex.hero_fontsize  = document.getElementById('hc-fontsize').value;
     ex.hero_opacity   = document.getElementById('hc-opacity').value;
-    ex.hero_rowheight = document.getElementById('hc-rowheight').value;
-    ex.hero_speed     = document.getElementById('hc-speed').value;
+    
+    // Save new polaroid settings
+    ex.hero_source = document.querySelector('input[name="hero-src"]:checked').value;
+    ex.hero_custom_polaroids = customPolaroids;
+    ex.hero_density = document.getElementById('hc-density').value;
+    ex.hero_rotation = document.getElementById('hc-rotation').value;
+
     await sb.from('mv_settings').upsert({ key:'site', value: ex });
     toast('Hero settings saved ✓');
   }
@@ -505,8 +610,23 @@
     if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
     if (s.hero_fontsize) { liveHeroSize(s.hero_fontsize); }
     if (s.hero_opacity !== undefined) { liveHeroOpacity(s.hero_opacity); const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity; const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=s.hero_opacity+'%'; }
-    if (s.hero_rowheight) { liveHeroRowHeight(s.hero_rowheight); const sl=document.getElementById('hc-rowheight'); if(sl) sl.value=s.hero_rowheight; const lb=document.getElementById('hc-rh-val'); if(lb) lb.textContent=s.hero_rowheight+'px'; }
-    if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
+    
+    if (s.hero_source) {
+      const radio = document.querySelector(`input[name="hero-src"][value="${s.hero_source}"]`);
+      if (radio) { radio.checked = true; toggleHeroSrc(); }
+    }
+    if (s.hero_custom_polaroids) {
+      customPolaroids = s.hero_custom_polaroids;
+      renderCustomPolaroidsList();
+    }
+    if (s.hero_density) {
+      const sl=document.getElementById('hc-density'); if(sl) sl.value=s.hero_density;
+      const lb=document.getElementById('hc-den-val'); if(lb) lb.textContent=s.hero_density;
+    }
+    if (s.hero_rotation) {
+      const sl=document.getElementById('hc-rotation'); if(sl) sl.value=s.hero_rotation;
+      const lb=document.getElementById('hc-rot-val'); if(lb) lb.textContent=s.hero_rotation+'°';
+    }
   }
 
   async function saveAbout() {
@@ -660,11 +780,13 @@
   Object.assign(window, {
     showPage, toggleColorPanel, saveSiteTitle, applyColor, applyNavColor,
     applyDirectColor, saveColors, resetColors, handleFaviconFile, applyFaviconUrl,
-    liveHeroTitle, liveHeroSubtitle, liveHeroSize, liveHeroOpacity, liveHeroRowHeight,
-    liveHeroSpeed, saveHeroSettings, filterTag, saveAbout, openAddModal,
+    liveHeroTitle, liveHeroSubtitle, liveHeroSize, liveHeroOpacity,
+    saveHeroSettings, filterTag, saveAbout, openAddModal,
     toggleEye, _closePw, _chk, closeModal, previewThumb, overrideThumb,
     deleteItem, saveItem, bgCloseModal, closeLb, editFromLb, ctxEdit,
-    ctxYT, ctxDel, saveOrder, handleItemClick, openCtx, handleThumbErr
+    ctxYT, ctxDel, saveOrder, handleItemClick, openCtx, handleThumbErr,
+    toggleHeroSrc, addCustomPolaroidUrl, addCustomPolaroidFile, removeCustomPolaroid,
+    populateHero, openDirectLb
   });
 
 })();
