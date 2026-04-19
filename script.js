@@ -247,8 +247,8 @@
        return;
     }
 
-    const density = parseInt(document.getElementById('hc-density').value) || 15;
-    const rotVar = parseInt(document.getElementById('hc-rotation').value) || 20;
+    const density = parseInt(document.getElementById('hc-density').value) || 25;
+    const rotVar = parseInt(document.getElementById('hc-rotation').value) || 25;
     
     let polaroidHtml = '';
     const aspectRatios = ['1/1', '4/3', '3/4', '16/9'];
@@ -256,10 +256,13 @@
     for (let i = 0; i < density; i++) {
       const item = items[i % items.length];
       
-      const posX = Math.floor(Math.random() * 70) + 15; 
-      const posY = Math.floor(Math.random() * 70) + 15;
+      // MENGATUR POLAROID MENJADI LEBIH RAPAT DI TENGAH DAN LEBIH BESAR
+      // Posisi difokuskan di rentang 25% hingga 75% frame agar menumpuk solid
+      const posX = Math.floor(Math.random() * 50) + 25; 
+      const posY = Math.floor(Math.random() * 60) + 20;
       const rot = Math.floor(Math.random() * (rotVar * 2)) - rotVar; 
-      const width = Math.floor(Math.random() * 80) + 120;
+      // Ukuran diperbesar (dari 160px s.d. 280px)
+      const width = Math.floor(Math.random() * 120) + 160;
       const ratio = aspectRatios[Math.floor(Math.random() * aspectRatios.length)];
       const z = i + 10;
       
