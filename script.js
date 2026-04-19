@@ -247,7 +247,7 @@
        return;
     }
 
-    const density = parseInt(document.getElementById('hc-density').value) || 25;
+    const density = parseInt(document.getElementById('hc-density').value) || 22;
     const rotVar = parseInt(document.getElementById('hc-rotation').value) || 25;
     
     let polaroidHtml = '';
@@ -256,17 +256,19 @@
     for (let i = 0; i < density; i++) {
       const item = items[i % items.length];
       
-      // MENGATUR POLAROID MENJADI LEBIH RAPAT DI TENGAH DAN LEBIH BESAR
-      // Posisi difokuskan di rentang 25% hingga 75% frame agar menumpuk solid
-      const posX = Math.floor(Math.random() * 50) + 25; 
-      const posY = Math.floor(Math.random() * 60) + 20;
+      // Sebaran koordinat dibatasi antara 15% hingga 70% agar lebih menumpuk padat di tengah
+      const posX = Math.floor(Math.random() * 55) + 15; 
+      const posY = Math.floor(Math.random() * 55) + 15;
       const rot = Math.floor(Math.random() * (rotVar * 2)) - rotVar; 
-      // Ukuran diperbesar (dari 160px s.d. 280px)
-      const width = Math.floor(Math.random() * 120) + 160;
+      
+      // Ukuran diperbesar (180px - 320px)
+      const width = Math.floor(Math.random() * 140) + 180;
       const ratio = aspectRatios[Math.floor(Math.random() * aspectRatios.length)];
       const z = i + 10;
       
-      const style = `left: ${posX}%; top: ${posY}%; width: ${width}px; transform: translate(-50%, -50%) rotate(${rot}deg); z-index: ${z};`;
+      // Tambahan animasi fade-in acak agar lebih halus saat diload
+      const delay = (Math.random() * 0.5).toFixed(2);
+      const style = `left: ${posX}%; top: ${posY}%; width: ${width}px; transform: translate(-50%, -50%) rotate(${rot}deg); z-index: ${z}; animation: heroFadeIn 0.5s ease backwards ${delay}s;`;
       
       let clickAction = '';
       let playIcon = '';
@@ -583,7 +585,6 @@
   function liveHeroTitle(v) { const el = document.getElementById('hero-title-text'); if (el) el.textContent = v || 'Nightmare XD'; }
   function liveHeroSubtitle(v) { const el = document.getElementById('hero-subtitle-text'); if (el) el.textContent = v || 'motion designer'; }
   function liveHeroSize(v) { document.documentElement.style.setProperty('--hero-fs', v + 'rem'); const sl = document.getElementById('hc-fontsize'); const lb = document.getElementById('hc-fontsize-val'); if (sl) sl.value = v; if (lb) lb.textContent = v + 'rem'; }
-  function liveHeroOpacity(v) { document.documentElement.style.setProperty('--hero-op', v / 100); }
 
   async function saveHeroSettings() {
     if (!_ue) return;
@@ -594,7 +595,6 @@
     ex.hero_title    = (document.getElementById('hc-title').value.trim())    || (titleEl    ? titleEl.textContent    : 'Nightmare XD');
     ex.hero_subtitle = (document.getElementById('hc-subtitle').value.trim()) || (subtitleEl ? subtitleEl.textContent : 'motion designer');
     ex.hero_fontsize  = document.getElementById('hc-fontsize').value;
-    ex.hero_opacity   = document.getElementById('hc-opacity').value;
     
     // Save new polaroid settings
     ex.hero_source = document.querySelector('input[name="hero-src"]:checked').value;
@@ -612,7 +612,6 @@
     if (s.hero_title && tt) { tt.textContent = s.hero_title; const i=document.getElementById('hc-title'); if(i) i.value=s.hero_title; }
     if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
     if (s.hero_fontsize) { liveHeroSize(s.hero_fontsize); }
-    if (s.hero_opacity !== undefined) { liveHeroOpacity(s.hero_opacity); const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity; const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=s.hero_opacity+'%'; }
     
     if (s.hero_source) {
       const radio = document.querySelector(`input[name="hero-src"][value="${s.hero_source}"]`);
@@ -783,7 +782,7 @@
   Object.assign(window, {
     showPage, toggleColorPanel, saveSiteTitle, applyColor, applyNavColor,
     applyDirectColor, saveColors, resetColors, handleFaviconFile, applyFaviconUrl,
-    liveHeroTitle, liveHeroSubtitle, liveHeroSize, liveHeroOpacity,
+    liveHeroTitle, liveHeroSubtitle, liveHeroSize, 
     saveHeroSettings, filterTag, saveAbout, openAddModal,
     toggleEye, _closePw, _chk, closeModal, previewThumb, overrideThumb,
     deleteItem, saveItem, bgCloseModal, closeLb, editFromLb, ctxEdit,
