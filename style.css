@@ -68,15 +68,15 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 
 
 /* ═══════════════════════════════
-   HERO SECTION (3D ROLL FILM)
+   HERO SECTION (SPLIT SCREEN)
 ═══════════════════════════════ */
 #hero {
-  position: relative; width: 100%; height: 65vh;
-  min-height: 450px; overflow: hidden; display: flex;
-  align-items: center; justify-content: center; margin-top: 52px;
-  /* Cinematic spotlight background */
-  background: radial-gradient(circle at center, #151515 0%, var(--bg) 100%);
+  position: relative; width: 100%; height: 80vh; min-height: 500px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 52px; overflow: hidden;
+  background: radial-gradient(circle at 75% 50%, #15151a 0%, var(--bg) 60%);
 }
+
 #hero-spacer { height: 48px; background: var(--bg); position: relative; }
 #hero-spacer::after {
   content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
@@ -84,78 +84,65 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
   background: linear-gradient(to right, transparent 0%, var(--border) 15%, rgba(255,255,255,0.18) 50%, var(--border) 85%, transparent 100%);
 }
 
-/* Sudut pandang ekstrem ala pita melengkung di ruang 3D */
-.film-container {
-  position: absolute; display: flex; flex-direction: column; justify-content: center;
-  gap: 15px; width: 160vw; left: -30vw;
-  transform: perspective(800px) rotateX(15deg) rotateY(-20deg) rotateZ(-3deg);
+/* KIRI: VERTICAL ROLL FILM */
+.hero-left {
+  width: 50%; height: 100%; position: relative;
+  perspective: 1200px; display: flex; justify-content: center; align-items: center;
+  /* Membuat ujung atas dan bawah film memudar halus */
+  mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%);
+}
+
+.film-waterfall {
+  display: flex; gap: 20px; height: 300%;
+  transform: rotateY(25deg) rotateX(10deg) rotateZ(-5deg);
   transform-style: preserve-3d;
 }
 
-/* Membungkus track untuk animasi meliuk (wave) tanpa merusak fungsi scroll horizontal */
-.film-wave {
-  width: 100%;
-  transform-style: preserve-3d;
+.film-track-v {
+  width: var(--hero-rh, 220px); 
+  display: flex; flex-direction: column; gap: 15px; padding: 0 25px; 
+  background: #050505; position: relative;
+  border-left: 2px solid #1a1a1a; border-right: 2px solid #1a1a1a;
+  box-shadow: -20px 0 50px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.8);
   will-change: transform;
 }
-.film-wave.wave1 { animation: swoopA 12s ease-in-out infinite; }
-.film-wave.wave2 { animation: swoopB 16s ease-in-out infinite; }
 
-@keyframes swoopA {
-  0%, 100% { transform: translateY(0) translateZ(0) rotateX(0deg); }
-  50% { transform: translateY(-40px) translateZ(50px) rotateX(5deg); }
-}
-@keyframes swoopB {
-  0%, 100% { transform: translateY(0) translateZ(0) rotateX(0deg); }
-  50% { transform: translateY(40px) translateZ(-50px) rotateX(-5deg); }
-}
-
-/* Bentuk Roll Film Hitam berlubang */
-.film-track {
-  height: var(--hero-rh, 160px);
-  display: flex; gap: 16px; padding: 28px 0;
-  background: #020202; position: relative;
-  border-top: 2px solid #1a1a1a; border-bottom: 2px solid #1a1a1a;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.95), inset 0 0 30px rgba(0,0,0,0.8);
-  will-change: transform;
-}
-.film-track.row1 { animation: hScrollL var(--hero-sp, 96s) linear infinite; }
-.film-track.row2 { animation: hScrollR var(--hero-sp, 96s) linear infinite; }
-
-@keyframes hScrollL { from{transform:translateX(0)} to{transform:translateX(-50%)} }
-@keyframes hScrollR { from{transform:translateX(-50%)} to{transform:translateX(0)} }
-
-/* Lubang Film (Perforations) */
-.film-track::before, .film-track::after {
-  content: ''; position: absolute; left: 0; width: 200%; height: 12px;
-  background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0, rgba(255,255,255,0.12) 16px, transparent 16px, transparent 32px);
+/* Vertical Perforations (Lubang Film Kiri Kanan) */
+.film-track-v::before, .film-track-v::after {
+  content: ''; position: absolute; top: 0; width: 12px; height: 100%;
+  background-image: repeating-linear-gradient(180deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 12px, transparent 12px, transparent 24px);
   z-index: 5; pointer-events: none;
 }
-.film-track::before { top: 6px; }
-.film-track::after { bottom: 6px; }
+.film-track-v::before { left: 6px; }
+.film-track-v::after { right: 6px; }
 
-/* Frame Gambar Thumbnail di dalam Film */
-.film-frame {
-  flex-shrink: 0; height: 100%; aspect-ratio: 16/9; position: relative;
-  cursor: pointer; border-radius: 8px; overflow: hidden;
-  opacity: var(--hero-op, 0.6);
+/* Animasi turun naik secara vertikal */
+.film-track-v.col1 { animation: vScrollUp var(--hero-sp, 96s) linear infinite; }
+.film-track-v.col2 { animation: vScrollDown var(--hero-sp, 96s) linear infinite; }
+
+@keyframes vScrollUp { from{transform:translateY(0)} to{transform:translateY(-50%)} }
+@keyframes vScrollDown { from{transform:translateY(-50%)} to{transform:translateY(0)} }
+
+.film-frame-v {
+  flex-shrink: 0; width: 100%; aspect-ratio: 16/9; position: relative;
+  cursor: pointer; border-radius: 6px; overflow: hidden;
+  opacity: var(--hero-op, 0.7);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   border: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 5px 20px rgba(0,0,0,0.6);
 }
 
-.film-frame img {
+.film-frame-v img {
   width: 100%; height: 100%; object-fit: cover; display: block;
-  /* Blur diturunkan menjadi 1.5px sesuai permintaan */
   filter: saturate(0.8) brightness(0.6) blur(1.5px); transition: all 0.4s;
 }
 
-/* Saat di-hover, gambar membesar maju (3D translateZ) dan fokus (blur hilang) */
-.film-frame:hover {
-  opacity: 1; transform: scale(1.08) translateZ(30px); z-index: 20;
+.film-frame-v:hover {
+  opacity: 1; transform: scale(1.08) translateZ(40px); z-index: 20;
   border-color: rgba(255,255,255,0.4); box-shadow: 0 15px 40px rgba(0,0,0,0.9);
 }
-.film-frame:hover img { filter: saturate(1.1) brightness(1.1) blur(0px); }
+.film-frame-v:hover img { filter: saturate(1.1) brightness(1.1) blur(0px); }
 
 .ff-play {
   position: absolute; top: 50%; left: 50%;
@@ -166,14 +153,40 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .ff-play svg { width: 16px; height: 16px; fill: #fff; margin-left: 2px; }
-.film-frame:hover .ff-play { transform: translate(-50%, -50%) scale(1); }
+.film-frame-v:hover .ff-play { transform: translate(-50%, -50%) scale(1); }
 
-/* Gradasi pinggir layar agar roll film seolah menyatu ke dalam kegelapan */
-#hero::before {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to right, var(--bg) 0%, transparent 15%, transparent 85%, var(--bg) 100%);
-  pointer-events: none; z-index: 10;
+/* KANAN: TEXT LOGO */
+.hero-right {
+  width: 50%; padding-right: 5%; display: flex; flex-direction: column;
+  align-items: flex-end; justify-content: center; text-align: right;
+  z-index: 2; animation: heroFadeInRight 1.4s ease both;
 }
+@keyframes heroFadeInRight { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:translateX(0); } }
+
+.hero-title {
+  font-family: 'Doto', monospace; font-weight: 480; font-variation-settings: 'wght' 480;
+  font-size: var(--hero-fs, clamp(3.2rem, 6vw, 6rem)); letter-spacing: 0.06em;
+  color: #fff; line-height: 1;
+  text-shadow: 0 0 40px rgba(255,255,255,0.18), 0 0 80px rgba(255,255,255,0.07), 0 2px 30px rgba(0,0,0,0.9);
+  white-space: nowrap; outline: none; cursor: default;
+}
+.hero-subtitle {
+  font-family: 'Josefin Slab', serif; font-weight: 250; font-style: italic;
+  font-size: clamp(0.85rem, 1.5vw, 1.25rem); letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
+  text-transform: lowercase; margin-top: 0.8rem; text-shadow: 0 1px 12px rgba(0,0,0,0.8);
+  white-space: nowrap; outline: none; cursor: default;
+}
+
+body.edit-enabled .hero-title, body.edit-enabled .hero-subtitle { cursor: text; pointer-events: all; }
+body.edit-enabled .hero-title:hover, body.edit-enabled .hero-subtitle:hover { outline: 1px dashed rgba(255,255,255,0.25); outline-offset: 6px; }
+body.edit-enabled .hero-title:focus, body.edit-enabled .hero-subtitle:focus { outline: 1px solid rgba(255,255,255,0.5); outline-offset: 6px; }
+.hero-title, .hero-subtitle { pointer-events: none; }
+
+.hero-scroll-hint {
+  font-family: 'Space Mono', monospace; font-size: 0.52rem; letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.28); margin-top: 3rem; animation: pulse 2.8s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:0.25; } 50% { opacity:0.65; } }
 
 /* ═══════════════════════════════
    END HERO SECTION
@@ -351,7 +364,13 @@ body.edit-enabled .about-hint { display:block; }
 #toast.on { opacity:1; }
 
 @media(max-width:1100px){ .masonry-grid { grid-template-columns: repeat(3, 1fr); } }
-@media(max-width:768px){ nav { padding:0 1.2rem; } .filter-bar { padding:.75rem 1rem; } .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width:768px){ 
+  nav { padding:0 1.2rem; } .filter-bar { padding:.75rem 1rem; } .masonry-grid { grid-template-columns: repeat(2, 1fr); }
+  #hero { flex-direction: column; justify-content: center; align-items: center; }
+  .hero-left { width: 100%; height: 60%; mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%); }
+  .hero-right { width: 100%; align-items: center; text-align: center; padding: 0; margin-top: -50px; }
+  .film-waterfall { transform: rotateY(15deg) rotateX(15deg) rotateZ(0deg); }
+}
 @media(max-width:480px){ .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
 
 #cp-toggle-btn { display: none; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; padding: 0.3rem 0.7rem; cursor: pointer; border-radius: 2px; transition: all 0.18s; white-space: nowrap; }
