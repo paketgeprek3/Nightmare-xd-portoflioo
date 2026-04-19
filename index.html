@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="style.css">
 
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
+    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
   </script>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -131,46 +131,24 @@
   <button class="cp-save" onclick="saveColors()">SAVE COLORS</button>
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
   <div class="cp-divider"></div>
-  <div class="cp-title">HERO TEXT <span>● LOGO</span></div>
-  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem">
-    <div class="cp-label">Main Title</div>
-    <input type="text" id="hc-title" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
-      placeholder="Nightmare XD"
-      oninput="liveHeroTitle(this.value)"/>
-  </div>
-  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem;margin-top:0.5rem">
-    <div class="cp-label">Subtitle</div>
-    <input type="text" id="hc-subtitle" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
-      placeholder="motion designer"
-      oninput="liveHeroSubtitle(this.value)"/>
-  </div>
-  <div class="cp-row" style="margin-top:0.6rem">
-    <div class="cp-label">Title Size</div>
-    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-fontsize" min="2" max="12" step="0.1" value="7"
-        style="flex:1;accent-color:#fff"
-        oninput="liveHeroSize(this.value);document.getElementById('hc-fontsize-val').textContent=this.value+'rem'"/>
-      <span id="hc-fontsize-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:3rem">7rem</span>
-    </div>
-  </div>
-  <div class="cp-divider"></div>
-  <div class="cp-title">HERO PREVIEW <span>● THUMBNAIL STRIP</span></div>
+  
+  <div class="cp-title">HERO PREVIEW <span>● ROLL FILM</span></div>
   <div class="cp-row">
     <div class="cp-label">Opacity (0–100%)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="40"
+      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="60"
         style="flex:1;accent-color:#fff"
         oninput="liveHeroOpacity(this.value);document.getElementById('hc-opacity-val').textContent=this.value+'%'"/>
-      <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">40%</span>
+      <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">60%</span>
     </div>
   </div>
   <div class="cp-row">
     <div class="cp-label">Row Height (zoom)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-rowheight" min="40" max="220" step="5" value="110"
+      <input type="range" id="hc-rowheight" min="80" max="300" step="5" value="160"
         style="flex:1;accent-color:#fff"
         oninput="liveHeroRowHeight(this.value);document.getElementById('hc-rh-val').textContent=this.value+'px'"/>
-      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">110px</span>
+      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">160px</span>
     </div>
   </div>
   <div class="cp-row">
@@ -182,20 +160,14 @@
       <span id="hc-speed-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">96s</span>
     </div>
   </div>
-  <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE HERO SETTINGS</button>
+  <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE ROLL FILM SETTINGS</button>
 </div>
 
 <div id="page-works" class="page active">
   <section id="hero">
-    <div class="hero-rows">
-      <div class="hero-strip row1" id="hero-row1"></div>
-      <div class="hero-strip row2" id="hero-row2"></div>
-      <div class="hero-strip row3" id="hero-row3"></div>
-    </div>
-    <div class="hero-center">
-      <div class="hero-title" id="hero-title-text" spellcheck="false">Nightmare XD</div>
-      <div class="hero-subtitle" id="hero-subtitle-text" spellcheck="false">motion designer</div>
-      <div class="hero-scroll-hint">▼ &nbsp; SCROLL TO EXPLORE</div>
+    <div class="film-container">
+      <div class="film-track row1" id="hero-row1"></div>
+      <div class="film-track row2" id="hero-row2"></div>
     </div>
   </section>
 
