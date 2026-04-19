@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MV Portfolio</title>
   <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Doto:wght@100..900&family=Josefin+Slab:ital,wght@0,250;1,250&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=block" rel="stylesheet"/>
+  
   <link rel="stylesheet" href="style.css">
+
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
+    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
   </script>
+
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script defer src="script.js"></script>
@@ -26,7 +30,10 @@
   <div class="nav-right">
     <div id="e-dot" title=""></div>
     <button id="cp-toggle-btn" onclick="toggleColorPanel()" title="">🎨 COLORS</button>
-    <input id="site-title-input" type="text" value="In-sight by artist" title="" onblur="saveSiteTitle(this.value)" onkeydown="if(event.key==='Enter')this.blur()"/>
+    <input id="site-title-input" type="text" value="In-sight by artist"
+      title=""
+      onblur="saveSiteTitle(this.value)"
+      onkeydown="if(event.key==='Enter')this.blur()"/>
   </div>
 </nav>
 
@@ -111,77 +118,81 @@
   <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem">
     <label class="cp-label">Or paste image URL</label>
     <div style="display:flex;gap:0.4rem">
-      <input type="text" id="favicon-url-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="https://i.imgur.com/xxx.png"/>
-      <button onclick="applyFaviconUrl()" class="btn-ghost" style="padding:0 0.6rem;font-size:0.58rem">SET</button>
+      <input type="text" id="favicon-url-input" class="form-input" 
+        style="font-size:0.65rem;padding:0.4rem 0.6rem"
+        placeholder="https://i.imgur.com/xxx.png"/>
+      <button onclick="applyFaviconUrl()" 
+        style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:Space Mono,monospace;font-size:0.58rem;padding:0 0.6rem;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all .18s"
+        onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'"
+        onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">SET</button>
     </div>
   </div>
   <div class="cp-divider"></div>
   <button class="cp-save" onclick="saveColors()">SAVE COLORS</button>
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
   <div class="cp-divider"></div>
-  
   <div class="cp-title">HERO TEXT <span>● LOGO</span></div>
   <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem">
     <div class="cp-label">Main Title</div>
-    <input type="text" id="hc-title" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem" placeholder="Nightmare XD" oninput="liveHeroTitle(this.value)"/>
+    <input type="text" id="hc-title" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="Nightmare XD"
+      oninput="liveHeroTitle(this.value)"/>
   </div>
   <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem;margin-top:0.5rem">
     <div class="cp-label">Subtitle</div>
-    <input type="text" id="hc-subtitle" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem" placeholder="motion designer" oninput="liveHeroSubtitle(this.value)"/>
+    <input type="text" id="hc-subtitle" class="form-input" style="font-size:0.78rem;padding:0.4rem 0.6rem"
+      placeholder="motion designer"
+      oninput="liveHeroSubtitle(this.value)"/>
   </div>
   <div class="cp-row" style="margin-top:0.6rem">
     <div class="cp-label">Title Size</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-fontsize" min="1" max="10" step="0.1" value="3.5" style="flex:1;accent-color:#fff" oninput="liveHeroSize(this.value);document.getElementById('hc-fontsize-val').textContent=this.value+'rem'"/>
-      <span id="hc-fontsize-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:3rem">3.5rem</span>
+      <input type="range" id="hc-fontsize" min="2" max="12" step="0.1" value="7"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroSize(this.value);document.getElementById('hc-fontsize-val').textContent=this.value+'rem'"/>
+      <span id="hc-fontsize-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:3rem">7rem</span>
     </div>
   </div>
   <div class="cp-divider"></div>
-
-  <div class="cp-title">HERO POLAROID SOURCE</div>
-  <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.5rem">
-    <label style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-      <input type="radio" name="hero-src" value="random" onchange="toggleHeroSrc()" checked> Random Portfolio
-    </label>
-    <label style="font-family:Space Mono,monospace;font-size:0.58rem;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:0.4rem">
-      <input type="radio" name="hero-src" value="custom" onchange="toggleHeroSrc()"> Custom Collection
-    </label>
-  </div>
-
-  <div id="custom-src-panel" style="display:none; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
-    <label style="display:block;width:100%;padding:0.45rem;border:1px dashed var(--border);border-radius:2px;text-align:center;cursor:pointer;font-size:0.58rem;font-family:Space Mono,monospace;color:var(--muted)">
-      📁 UPLOAD THUMBNAIL
-      <input type="file" accept="image/*" style="display:none" onchange="addCustomPolaroidFile(this)"/>
-    </label>
-    <div style="display:flex;gap:0.4rem">
-      <input type="text" id="custom-yt-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="YouTube ID/URL"/>
-      <button onclick="addCustomPolaroidUrl()" class="btn-ghost" style="padding:0 0.6rem;font-size:0.58rem">ADD</button>
-    </div>
-    <div id="custom-polaroid-list" style="display:flex;flex-direction:column;gap:0.3rem;max-height:150px;overflow-y:auto;border:1px solid var(--border);padding:0.3rem;border-radius:2px;"></div>
-  </div>
-
-  <div class="cp-row" style="margin-top:0.8rem">
-    <div class="cp-label">Pile Density</div>
+  <div class="cp-title">HERO PREVIEW <span>● THUMBNAIL STRIP</span></div>
+  <div class="cp-row">
+    <div class="cp-label">Opacity (0–100%)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-density" min="5" max="40" step="1" value="22" style="flex:1;accent-color:#fff" oninput="document.getElementById('hc-den-val').textContent=this.value; populateHero();"/>
-      <span id="hc-den-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:1.5rem">22</span>
+      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="40"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroOpacity(this.value);document.getElementById('hc-opacity-val').textContent=this.value+'%'"/>
+      <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">40%</span>
     </div>
   </div>
   <div class="cp-row">
-    <div class="cp-label">Rotation Variety</div>
+    <div class="cp-label">Row Height (zoom)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-rotation" min="5" max="60" step="1" value="25" style="flex:1;accent-color:#fff" oninput="document.getElementById('hc-rot-val').textContent=this.value+'°'; populateHero();"/>
-      <span id="hc-rot-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:1.5rem">25°</span>
+      <input type="range" id="hc-rowheight" min="40" max="220" step="5" value="110"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroRowHeight(this.value);document.getElementById('hc-rh-val').textContent=this.value+'px'"/>
+      <span id="hc-rh-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">110px</span>
     </div>
   </div>
-
+  <div class="cp-row">
+    <div class="cp-label">Scroll Speed</div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
+      <input type="range" id="hc-speed" min="20" max="200" step="5" value="96"
+        style="flex:1;accent-color:#fff"
+        oninput="liveHeroSpeed(this.value);document.getElementById('hc-speed-val').textContent=this.value+'s'"/>
+      <span id="hc-speed-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">96s</span>
+    </div>
+  </div>
   <button class="cp-save" onclick="saveHeroSettings()" style="margin-top:0.5rem">SAVE HERO SETTINGS</button>
 </div>
 
 <div id="page-works" class="page active">
   <section id="hero">
-    <div class="hero-left" id="polaroid-container"></div>
-    <div class="hero-right">
+    <div class="hero-rows">
+      <div class="hero-strip row1" id="hero-row1"></div>
+      <div class="hero-strip row2" id="hero-row2"></div>
+      <div class="hero-strip row3" id="hero-row3"></div>
+    </div>
+    <div class="hero-center">
       <div class="hero-title" id="hero-title-text" spellcheck="false">Nightmare XD</div>
       <div class="hero-subtitle" id="hero-subtitle-text" spellcheck="false">motion designer</div>
       <div class="hero-scroll-hint">▼ &nbsp; SCROLL TO EXPLORE</div>
@@ -208,7 +219,10 @@
 </div>
 
 <div id="page-about" class="page">
-  <div id="about-name" contenteditable="true" onblur="saveAbout()" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}" spellcheck="false">ARTIST NAME</div>
+  <div id="about-name" contenteditable="true"
+    onblur="saveAbout()"
+    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.blur()}"
+    spellcheck="false">ARTIST NAME</div>
   <div id="about-role" contenteditable="true" onblur="saveAbout()" spellcheck="false">MUSIC VIDEO DIRECTOR</div>
   <div id="about-body" contenteditable="true" onblur="saveAbout()" spellcheck="false">Your bio goes here. Only you (admin) can edit this text. Visitors can read but not modify anything.</div>
   <div class="about-hint">↑ CLICK ANY TEXT TO EDIT &nbsp;·&nbsp; USE THE SAME SHORTCUT TO EXIT</div>
@@ -221,10 +235,13 @@
     <div class="pw-title">ADMIN ACCESS</div>
     <div class="pw-sub">LOGIN WITH SUPABASE ACCOUNT</div>
     <div class="pw-wrap" style="margin-bottom:0.8rem">
-      <input id="email-input" type="email" placeholder="admin@email.com" onkeydown="if(event.key==='Enter') document.getElementById('pw-input').focus()"/>
+      <input id="email-input" type="email" placeholder="admin@email.com"
+        onkeydown="if(event.key==='Enter') document.getElementById('pw-input').focus()"/>
     </div>
     <div class="pw-wrap">
-      <input id="pw-input" type="password" placeholder="••••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')_chk()"/>
+      <input id="pw-input" type="password" placeholder="••••••••••••"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')_chk()"/>
       <button class="pw-eye" onclick="toggleEye()">👁</button>
     </div>
     <div id="pw-err"></div>
@@ -241,7 +258,9 @@
     <div class="modal-title" id="modal-title">ADD VIDEO</div>
     <div class="form-group">
       <label class="form-label">YouTube URL or Video ID *</label>
-      <input class="form-input" id="f-yturl" type="text" placeholder="https://youtu.be/xxxxx  or  video_id" oninput="previewThumb()"/>
+      <input class="form-input" id="f-yturl" type="text"
+        placeholder="https://youtu.be/xxxxx  or  video_id"
+        oninput="previewThumb()"/>
     </div>
     <div class="form-group">
       <label class="form-label">Thumbnail Preview</label>
@@ -269,7 +288,9 @@
     </div>
     <div class="form-group">
       <label class="form-label">Custom Thumbnail URL (optional)</label>
-      <input class="form-input" id="f-thumb" type="text" placeholder="Leave blank to use YouTube thumbnail" oninput="overrideThumb()"/>
+      <input class="form-input" id="f-thumb" type="text"
+        placeholder="Leave blank to use YouTube thumbnail"
+        oninput="overrideThumb()"/>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="btn-delete" style="display:none;margin-right:auto" onclick="deleteItem()">DELETE</button>
