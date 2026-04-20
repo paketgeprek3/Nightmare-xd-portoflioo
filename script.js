@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Load Links Sosmed
+      // Load Links Sosmed dari database
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -507,21 +507,22 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // Edit Link Khusus Sosmed
+  // --- Fungsi Baru: Pop-up Edit Link Saat Ikon Diklik ---
   function handleLinkClick(e, label) {
-    if (_ue) {
-      e.preventDefault();
+    if (_ue) { // Cek apakah mode admin/edit menyala
+      e.preventDefault(); // Mencegah pindah halaman
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
+      
       const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://twitter.com/namakamu atau mailto:kamu@email.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout();
+        saveAbout(); // Langsung simpan ke Supabase
       }
     } else {
-      // Cegah klik terbuka jika link masih kosong
+      // Jika mode admin mati, tapi link belum disetel (masih '#'), matikan kliknya
       if (e.currentTarget.getAttribute('href') === '#') {
         e.preventDefault();
       }
@@ -535,7 +536,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Save link baru
+      // Tambahan: Menyimpan status link ke database
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
