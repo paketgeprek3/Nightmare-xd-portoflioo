@@ -235,9 +235,9 @@
     const row2 = [...base.slice(Math.floor(base.length*2/3)), ...base.slice(0, Math.floor(base.length*2/3))];
     const sets = [row0, row1, row2];
 
+    const op = (window._heroOpacity !== undefined) ? window._heroOpacity : 0.4;
     function makeImgs(arr) {
-      // Inline style dihapus 100% untuk mencegah bug terang-gelap
-      const imgs = arr.map(src => `<img class="hero-thumb" src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`).join('');
+      const imgs = arr.map(src => `<img class="hero-thumb" src="${src}" alt="" loading="lazy" style="opacity:${op}" onerror="this.style.display='none'">`).join('');
       return imgs + imgs;
     }
 
@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Mengembalikan URL Sosmed dari Database
+      // Load URL sosmed dari database
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -476,11 +476,9 @@
   function liveHeroTitle(v) { const el = document.getElementById('hero-title-text'); if (el) el.textContent = v || 'Nightmare XD'; }
   function liveHeroSubtitle(v) { const el = document.getElementById('hero-subtitle-text'); if (el) el.textContent = v || 'motion designer'; }
   function liveHeroSize(v) { document.documentElement.style.setProperty('--hero-fs', v + 'rem'); const sl = document.getElementById('hc-fontsize'); const lb = document.getElementById('hc-fontsize-val'); if (sl) sl.value = v; if (lb) lb.textContent = v + 'rem'; }
-  
-  // Bug fix: Memindahkan manipulasi opacity ke CSS Variable
-  function liveHeroOpacity(v) { document.documentElement.style.setProperty('--hero-op', v / 100); }
-  function liveHeroRowHeight(v) { document.documentElement.style.setProperty('--hero-rh', v + 'px'); }
-  function liveHeroSpeed(v) { document.documentElement.style.setProperty('--hero-sp', v + 's'); }
+  function liveHeroOpacity(v) { document.querySelectorAll('.hero-thumb').forEach(img => { img.style.opacity = (v / 100).toFixed(2); }); window._heroOpacity = v / 100; }
+  function liveHeroRowHeight(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.height = v + 'px'; }); }
+  function liveHeroSpeed(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.animationDuration = v + 's'; }); }
 
   async function saveHeroSettings() {
     if (!_ue) return;
@@ -509,19 +507,19 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // Fungsi Tambahan untuk Edit Ikon Sosmed
+  // Handle Edit URL
   function handleLinkClick(e, label) {
     if (_ue) {
-      e.preventDefault(); 
+      e.preventDefault();
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:admin@email.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:kamu@email.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout(); 
+        saveAbout();
       }
     } else {
       if (e.currentTarget.getAttribute('href') === '#') {
@@ -537,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Menyimpan data URL sosmed ke Supabase
+      // Simpan link sosmed
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
