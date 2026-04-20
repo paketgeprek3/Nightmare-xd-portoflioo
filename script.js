@@ -11,6 +11,9 @@
   let _ue        = false;
   let keyBuf     = '';
   let keyTmr     = null;
+  
+  // Variabel untuk menyimpan gambar icon custom dari Admin panel
+  let iconCache = { twitter: null, vgen: null, email: null };
 
   const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
   const _trigger=_wa.map((c,i)=>String.fromCharCode(c^_wb[i])).join('');
@@ -222,6 +225,7 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // --- BAGIAN INI SAMA PERSIS 100% DENGAN SCRIPT ASLIMU ---
   function populateHero() {
     const rows = ['hero-row1','hero-row2','hero-row3'].map(id => document.getElementById(id));
     if (!rows[0]) return;
@@ -243,6 +247,7 @@
 
     rows.forEach((row, i) => { if (row) row.innerHTML = makeImgs(sets[i]); });
   }
+  // --------------------------------------------------------
 
   let _dragging = false;
   function handleItemClick(e, id) {
@@ -452,14 +457,6 @@
     if (!error) { toast('Deleted'); closeModal(); await loadVideos(); } else toast('Error: '+error.message);
   }
 
-  // --- Fungsi Load VGen dari Database ---
-  function setVgenIcon(dataUrl) {
-    const display = document.getElementById('vgen-icon-display');
-    if (display) display.src = dataUrl;
-    const prev = document.getElementById('vgen-icon-preview');
-    if (prev) prev.innerHTML = `<img src="${dataUrl}" style="width:20px;height:20px;object-fit:contain;opacity:0.6;"/>`;
-  }
-
   async function loadSettings() {
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     if (data && data.value) {
@@ -472,13 +469,15 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Memuat Link URL Sosmed
+      // Load Links dari Database ke dalam HTML
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
 
-      // Memuat Icon VGen Kustom (jika ada)
-      if (s.vgen_icon) loadVgenIcon(s.vgen_icon);
+      // Load Custom Icons dari Database untuk ditimpa ke dalam container HTML
+      if (s.icon_twitter) setSocialIcon('twitter', s.icon_twitter);
+      if (s.icon_vgen) setSocialIcon('vgen', s.icon_vgen);
+      if (s.icon_email) setSocialIcon('email', s.icon_email);
 
       applyHeroSettings(s);
     }
@@ -518,7 +517,7 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // Handle Edit Link Sosmed
+  // --- Fungsi Pop-up Edit URL Tautan ---
   function handleLinkClick(e, label) {
     if (_ue) {
       e.preventDefault(); 
@@ -526,11 +525,11 @@
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh Email: mailto:emailkamu@gmail.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:kamu@email.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout();
+        saveAbout(); // Save ke database Supabase
       }
     } else {
       if (e.currentTarget.getAttribute('href') === '#') {
@@ -546,6 +545,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
+      // Mengambil link URL terbaru dari attribute href HTML
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
@@ -554,52 +554,58 @@
     toast('Saved ✓');
   }
 
-  // --- Fungsi Upload Custom VGen Icon Admin ---
-  function handleVgenIconFile(input) {
+  // --- Fungsi Upload Custom Ikon Sosmed (Twitter, VGen, Email) ---
+  function setSocialIcon(type, dataUrl) {
+    iconCache[type] = dataUrl;
+    const container = document.getElementById(`icon-container-${type}`);
+    if (container) container.innerHTML = `<img src="${dataUrl}" class="about-link-icon-img" />`;
+    const preview = document.getElementById(`${type}-icon-preview`);
+    if (preview) preview.innerHTML = `<img src="${dataUrl}" style="width:20px;height:20px;object-fit:contain;opacity:0.6;"/>`;
+  }
+
+  function handleSocialIconFile(input, type) {
     const file = input.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('Please select an image file'); return; }
     const reader = new FileReader();
     reader.onload = async (e) => {
       const dataUrl = e.target.result;
-      setVgenIcon(dataUrl);
-      await saveVgenIcon(dataUrl);
-      toast('VGen Icon updated ✓');
+      setSocialIcon(type, dataUrl);
+      await saveSocialIcon(type, dataUrl);
+      toast(`${type} Icon updated ✓`);
     };
     reader.readAsDataURL(file);
   }
 
-  async function applyVgenIconUrl() {
-    const url = document.getElementById('vgen-icon-url-input').value.trim();
+  async function applySocialIconUrl(type) {
+    const url = document.getElementById(`${type}-icon-url-input`).value.trim();
     if (!url) { toast('Please enter an image URL'); return; }
     try {
       const img = new Image(); img.crossOrigin = 'anonymous';
       img.onload = async () => {
         const canvas = document.createElement('canvas');
-        canvas.width = img.width > 128 ? 128 : img.width;
-        canvas.height = img.height > 128 ? 128 : img.height;
+        canvas.width = img.width > 64 ? 64 : img.width;
+        canvas.height = img.height > 64 ? 64 : img.height;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const dataUrl = canvas.toDataURL('image/png');
-        setVgenIcon(dataUrl);
-        await saveVgenIcon(dataUrl);
-        toast('VGen Icon updated ✓');
+        setSocialIcon(type, dataUrl);
+        await saveSocialIcon(type, dataUrl);
+        toast(`${type} Icon updated ✓`);
       };
-      img.onerror = () => { setVgenIcon(url); saveVgenIcon(url); toast('VGen Icon set ✓ (direct URL)'); };
+      img.onerror = () => { setSocialIcon(type, url); saveSocialIcon(type, url); toast(`${type} Icon set ✓ (direct URL)`); };
       img.src = url;
-    } catch(e) { setVgenIcon(url); await saveVgenIcon(url); toast('VGen Icon set ✓'); }
+    } catch(e) { setSocialIcon(type, url); await saveSocialIcon(type, url); toast(`${type} Icon set ✓`); }
   }
 
-  async function saveVgenIcon(dataUrl) {
+  async function saveSocialIcon(type, dataUrl) {
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     const ex = (data && data.value) || {};
-    ex.vgen_icon = dataUrl;
+    ex[`icon_${type}`] = dataUrl;
     const { error } = await sb.from('mv_settings').upsert({ key:'site', value: ex });
-    if (error) toast('Error saving VGen icon');
+    if (error) toast(`Error saving ${type} icon`);
   }
-
-  function loadVgenIcon(dataUrl) { if (!dataUrl) return; setVgenIcon(dataUrl); }
-  // --- Selesai ---
+  // --- Akhir Fungsi Upload Ikon ---
 
   async function saveSiteTitle(val) {
     if(!_ue) return;
@@ -745,7 +751,7 @@
     toggleEye, _closePw, _chk, closeModal, previewThumb, overrideThumb,
     deleteItem, saveItem, bgCloseModal, closeLb, editFromLb, ctxEdit,
     ctxYT, ctxDel, saveOrder, handleItemClick, openCtx, handleThumbErr,
-    handleLinkClick, handleVgenIconFile, applyVgenIconUrl
+    handleLinkClick, handleSocialIconFile, applySocialIconUrl
   });
 
 })();
