@@ -340,31 +340,26 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
   gap: 1.5rem; 
   margin-top: 2rem; 
 }
-
 .about-link-icon { 
   width: 24px; 
   height: 24px; 
-  fill: var(--text); /* Mengambil warna teks terang otomatis dari admin */
+  fill: var(--text);
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
 }
-
 .about-links a { 
   text-decoration: none; 
+  border: none; 
+  outline: none;
   display: inline-flex; 
   align-items: center; 
   justify-content: center; 
-  color: transparent; 
-  outline: none;
 }
-
 .about-links a:hover .about-link-icon { 
   opacity: 1; 
   transform: scale(1.15); 
 }
-
-/* Garis putus-putus tanda bisa diedit khusus di mode Admin */
 body.edit-enabled .about-link-icon { 
   outline: 1px dashed var(--muted2); 
   outline-offset: 8px; 
