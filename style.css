@@ -333,33 +333,46 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 .cp-save { width: 100%; background: var(--accent); border: none; color: #000; font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; font-weight: 700; padding: 0.45rem; cursor: pointer; transition: all 0.18s; border-radius: 2px; text-transform: uppercase; margin-bottom: 0.5rem; }
 .cp-save:hover { background: #ccc; }
 
-/* ═════════════════════════════════════════
-   ICONS SOCIAL MEDIA DI HALAMAN ABOUT (SOSMED)
-═════════════════════════════════════════ */
+/* ══════════════════════════════════════
+   ICONS SOCIAL MEDIA DI HALAMAN ABOUT
+══════════════════════════════════════ */
 .about-links { 
   display: flex; 
-  gap: 1.2rem; 
+  gap: 1.5rem; 
   margin-top: 2rem; 
 }
 .about-link-icon { 
-  width: 22px; 
-  height: 22px; 
-  fill: var(--text); /* Warna solid putih matching dengan teks deskripsi */
+  width: 24px; 
+  height: 24px; 
+  fill: var(--text); /* Warna solid (putih/off-white) mengikuti teks web */
   transition: all 0.2s; 
   cursor: pointer; 
-  opacity: 0.8;
+  opacity: 0.6;
 }
-.about-link-icon:hover { 
+
+/* Khusus untuk ikon VGen (file .png) agar ukurannya matching */
+.about-link-icon-img {
+  width: 24px; 
+  height: 24px; 
+  object-fit: contain;
+  transition: all 0.2s; 
+  cursor: pointer; 
+  opacity: 0.6;
+}
+
+.about-link-icon:hover, .about-link-icon-img:hover { 
   opacity: 1; 
   transform: scale(1.15); 
 }
 
-/* Garis edit mode admin (dash) */
-body.edit-enabled .about-link-icon { 
+/* Tanda Edit (Garis putus-putus) khusus di Mode Admin */
+body.edit-enabled .about-link-icon, 
+body.edit-enabled .about-link-icon-img { 
   outline: 1px dashed var(--muted2); 
-  outline-offset: 6px; 
+  outline-offset: 8px; 
   border-radius: 2px; 
 }
-body.edit-enabled .about-link-icon:hover { 
+body.edit-enabled .about-link-icon:hover, 
+body.edit-enabled .about-link-icon-img:hover { 
   outline: 1px solid var(--accent); 
 }
