@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Load Links dari Database ke dalam attribut href di HTML
+      // Load Links dari Database ke HTML attribute href
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -515,15 +515,15 @@
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Untuk Email pastikan pakai mailto:emailkamu@gmail.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: mailto:someone@example.com atau https://vgen.co/yourname):`, currentLink);
       
-      if (newLink !== null) {
+      if (newLink !== null) { // Jika tidak di-cancel
         el.setAttribute('href', newLink.trim() || '#');
         saveAbout(); // Save ke database
       }
     } else { // Jika pengunjung biasa
       if (e.currentTarget.getAttribute('href') === '#') {
-        e.preventDefault(); // Jangan buka kalau URL kosong
+        e.preventDefault(); // Jangan buka link kosong
       }
     }
   }
@@ -535,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Mengambil link URL terbaru dari attribut HTML
+      // Mengambil URL sosmed terbaru dari attribute href HTML
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
