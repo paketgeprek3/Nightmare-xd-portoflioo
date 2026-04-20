@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Load Links dari Database ke HTML attribute href
+      // Load Links dari Database ke dalam HTML attribute
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -509,21 +509,21 @@
 
   // Handle Klik Ikon Sosmed
   function handleLinkClick(e, label) {
-    if (_ue) { // Jika sedang di mode edit/admin
+    if (_ue) {
       e.preventDefault(); 
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: mailto:someone@example.com atau https://vgen.co/yourname):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:admin@email.com):`, currentLink);
       
-      if (newLink !== null) { // Jika tidak di-cancel
+      if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
         saveAbout(); // Save ke database
       }
-    } else { // Jika pengunjung biasa
+    } else {
       if (e.currentTarget.getAttribute('href') === '#') {
-        e.preventDefault(); // Jangan buka link kosong
+        e.preventDefault();
       }
     }
   }
@@ -535,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Mengambil URL sosmed terbaru dari attribute href HTML
+      // Mengambil link URL terbaru dari attribute href HTML
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
