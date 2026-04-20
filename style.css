@@ -335,50 +335,22 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 /* ══════════════════════════════════════
    ICONS SOCIAL MEDIA DI HALAMAN ABOUT
 ══════════════════════════════════════ */
-.about-links { 
-  display: flex; 
-  gap: 1.5rem; 
-  margin-top: 2rem; 
-}
-.about-link-icon { 
-  width: 24px; 
-  height: 24px; 
-  fill: var(--text); /* Warna otomatis terang/putih mengikuti web */
-  transition: all 0.2s; 
-  cursor: pointer; 
-  opacity: 0.6;
-}
-.about-link-icon-img {
-  width: 24px; 
-  height: 24px; 
+.about-links { display: flex; gap: 1.5rem; margin-top: 2rem; }
+.about-link-icon { width: 22px; height: 22px; fill: var(--text); transition: all 0.2s; cursor: pointer; opacity: 0.6; }
+
+/* Penyesuaian khusus untuk file SVG Vgen agar menjadi putih dan berukuran pas */
+.about-link-icon-img { 
+  width: 22px; 
+  height: 22px; 
   object-fit: contain; 
   transition: all 0.2s; 
   cursor: pointer; 
-  opacity: 0.6;
-}
-.about-links a { 
-  text-decoration: none; 
-  border: none; 
-  outline: none;
-  color: transparent; 
-  display: inline-flex; 
-  align-items: center; 
-  justify-content: center; 
-}
-.about-links a:hover .about-link-icon, 
-.about-links a:hover .about-link-icon-img { 
-  opacity: 1; 
-  transform: scale(1.15); 
+  opacity: 0.6; 
+  /* Trik jitu: memaksa warna SVG bawaan (hitam) berubah menjadi terang (putih solid) */
+  filter: brightness(0) invert(1);
 }
 
-/* Garis edit mode admin (dash) */
-body.edit-enabled .about-link-icon, 
-body.edit-enabled .about-link-icon-img { 
-  outline: 1px dashed var(--muted2); 
-  outline-offset: 8px; 
-  border-radius: 2px; 
-}
-body.edit-enabled .about-links a:hover .about-link-icon, 
-body.edit-enabled .about-links a:hover .about-link-icon-img { 
-  outline: 1px solid var(--accent); 
-}
+.about-links a { text-decoration: none; border: none; outline: none; color: transparent; display: inline-flex; align-items: center; justify-content: center; }
+.about-links a:hover .about-link-icon, .about-links a:hover .about-link-icon-img { opacity: 1; transform: scale(1.15); }
+body.edit-enabled .about-link-icon, body.edit-enabled .about-link-icon-img { outline: 1px dashed var(--muted2); outline-offset: 8px; border-radius: 2px; }
+body.edit-enabled .about-links a:hover .about-link-icon, body.edit-enabled .about-links a:hover .about-link-icon-img { outline: 1px solid var(--accent); }
