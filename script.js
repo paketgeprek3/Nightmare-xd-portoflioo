@@ -507,22 +507,21 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // --- Fungsi Baru: Pop-up Edit Link Saat Ikon Diklik ---
+  // Edit Link Khusus Sosmed via prompt
   function handleLinkClick(e, label) {
-    if (_ue) { // Cek apakah mode admin/edit menyala
-      e.preventDefault(); // Mencegah pindah halaman
+    if (_ue) {
+      e.preventDefault();
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
-      
       const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://twitter.com/namakamu atau mailto:kamu@email.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout(); // Langsung simpan ke Supabase
+        saveAbout(); // Simpan otomatis setelah diedit
       }
     } else {
-      // Jika mode admin mati, tapi link belum disetel (masih '#'), matikan kliknya
+      // Cegah klik terbuka jika link masih kosong
       if (e.currentTarget.getAttribute('href') === '#') {
         e.preventDefault();
       }
@@ -536,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Tambahan: Menyimpan status link ke database
+      // Save status link terbaru ke database
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
