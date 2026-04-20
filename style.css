@@ -337,40 +337,54 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 ══════════════════════════════════════ */
 .about-links { 
   display: flex; 
-  gap: 1.5rem; 
+  gap: 1.2rem; 
   margin-top: 2rem; 
 }
 
+/* SVG (Twitter, VGen, Email) akan diwarnai otomatis (currentColor/putih/abu) oleh var(--text) */
 .about-link-icon { 
   width: 24px; 
   height: 24px; 
-  /* Ikon SVG akan otomatis mengambil warna dari teks website kamu */
-  fill: currentColor; 
+  fill: var(--text); /* Otomatis jadi putih/terang */
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
 }
 
+.about-link-icon-img {
+  width: 24px; 
+  height: 24px; 
+  object-fit: contain; 
+  transition: all 0.2s; 
+  cursor: pointer; 
+  opacity: 0.6;
+}
+
+/* Penanganan agar tidak ada warna biru default dari <a> */
 .about-links a { 
   text-decoration: none; 
   border: none; 
   outline: none;
+  color: var(--text) !important; /* Paksa warna text di dalam A agar SVG ikut terang */
   display: inline-flex; 
   align-items: center; 
   justify-content: center; 
 }
 
-.about-links a:hover .about-link-icon { 
+.about-links a:hover .about-link-icon, 
+.about-links a:hover .about-link-icon-img { 
   opacity: 1; 
   transform: scale(1.15); 
 }
 
-/* Garis putus-putus tanda bisa diedit khusus di mode Admin */
-body.edit-enabled .about-link-icon { 
+/* Garis edit mode admin */
+body.edit-enabled .about-link-icon, 
+body.edit-enabled .about-link-icon-img { 
   outline: 1px dashed var(--muted2); 
   outline-offset: 8px; 
   border-radius: 2px; 
 }
-body.edit-enabled .about-links a:hover .about-link-icon { 
+body.edit-enabled .about-links a:hover .about-link-icon, 
+body.edit-enabled .about-links a:hover .about-link-icon-img { 
   outline: 1px solid var(--accent); 
 }
