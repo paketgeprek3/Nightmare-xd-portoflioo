@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Load URL sosmed dari database
+      // Load Links dari Database ke dalam HTML attribute
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -507,23 +507,23 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // Handle Edit URL
+  // Handle Klik Ikon Sosmed
   function handleLinkClick(e, label) {
-    if (_ue) {
-      e.preventDefault();
+    if (_ue) { // Jika Admin mode aktif
+      e.preventDefault(); // Jangan buka link dulu
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:kamu@email.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Pastikan memasukkan awalan mailto: atau https://):`, currentLink);
       
-      if (newLink !== null) {
+      if (newLink !== null) { // Jika tidak di-cancel
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout();
+        saveAbout(); // Save ke database
       }
-    } else {
+    } else { // Jika Admin mode mati (pengunjung biasa)
       if (e.currentTarget.getAttribute('href') === '#') {
-        e.preventDefault();
+        e.preventDefault(); // Jangan ngapa-ngapain kalau link kosong
       }
     }
   }
@@ -535,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Simpan link sosmed
+      // Menyimpan URL sosmed
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
