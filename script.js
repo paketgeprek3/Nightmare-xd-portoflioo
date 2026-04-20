@@ -510,12 +510,12 @@
   // --- Fungsi Pop-up Edit Link Khusus Mode Admin ---
   function handleLinkClick(e, label) {
     if (_ue) {
-      e.preventDefault(); 
+      e.preventDefault();
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://twitter.com/namakamu atau mailto:kamu@email.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/kamu atau mailto:kamu@email.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
