@@ -464,7 +464,7 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Mengambil Link Sosmed dari Database
+      // Load Links dari Database ke dalam attribut href di HTML
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
@@ -507,23 +507,23 @@
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // --- Fungsi Edit Tautan ---
+  // Handle Klik Ikon Sosmed
   function handleLinkClick(e, label) {
-    if (_ue) {
-      e.preventDefault();
+    if (_ue) { // Jika sedang di mode edit/admin
+      e.preventDefault(); 
       const el = e.currentTarget;
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/kamu atau mailto:kamu@email.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Untuk Email pastikan pakai mailto:emailkamu@gmail.com):`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout(); 
+        saveAbout(); // Save ke database
       }
-    } else {
+    } else { // Jika pengunjung biasa
       if (e.currentTarget.getAttribute('href') === '#') {
-        e.preventDefault();
+        e.preventDefault(); // Jangan buka kalau URL kosong
       }
     }
   }
@@ -535,7 +535,7 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Menyimpan Tautan
+      // Mengambil link URL terbaru dari attribut HTML
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
