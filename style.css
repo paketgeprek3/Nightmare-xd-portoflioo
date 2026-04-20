@@ -344,30 +344,33 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 .about-link-icon { 
   width: 22px; 
   height: 22px; 
-  fill: var(--text); 
+  fill: var(--text); /* Warna putih/off-white mengikuti tema web */
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.8;
+  display: inline-block;
 }
-.about-link-icon-img {
-  width: 22px; 
-  height: 22px; 
-  object-fit: contain;
-  transition: all 0.2s; 
-  cursor: pointer; 
-  opacity: 0.8;
+
+/* Teknik CSS Mask untuk logo VGen PNG agar bisa berwarna solid seperti SVG */
+.vgen-mask {
+  background-color: var(--text); 
+  -webkit-mask: url('vgen.png') no-repeat center / contain;
+  mask: url('vgen.png') no-repeat center / contain;
 }
-.about-link-icon:hover, .about-link-icon-img:hover { 
+
+.about-links a { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+
+.about-links a:hover .about-link-icon { 
   opacity: 1; 
   transform: scale(1.15); 
 }
-body.edit-enabled .about-link-icon, 
-body.edit-enabled .about-link-icon-img { 
+
+/* Tanda Edit (Garis putus-putus) khusus di Mode Admin */
+body.edit-enabled .about-link-icon { 
   outline: 1px dashed var(--muted2); 
   outline-offset: 6px; 
   border-radius: 2px; 
 }
-body.edit-enabled .about-links a:hover .about-link-icon, 
-body.edit-enabled .about-links a:hover .about-link-icon-img { 
+body.edit-enabled .about-links a:hover .about-link-icon { 
   outline: 1px solid var(--accent); 
 }
