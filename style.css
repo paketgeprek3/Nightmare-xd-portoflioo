@@ -111,16 +111,19 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 }
 @keyframes heroFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
+/* PERBAIKAN RESPONSIVE: Menggunakan fungsi clamp() agar teks mengecil otomatis di layar HP */
 .hero-title {
   font-family: 'Doto', monospace; font-weight: 480; font-variation-settings: 'wght' 480;
-  font-size: var(--hero-fs, clamp(3.2rem, 7.5vw, 7rem)); letter-spacing: 0.06em;
+  font-size: clamp(2rem, 10vw, var(--hero-fs, 7rem)); 
+  letter-spacing: 0.06em;
   color: #fff; line-height: 1;
   text-shadow: 0 0 40px rgba(255,255,255,0.18), 0 0 80px rgba(255,255,255,0.07), 0 2px 30px rgba(0,0,0,0.9);
   white-space: nowrap; outline: none; cursor: default;
 }
 .hero-subtitle {
   font-family: 'Josefin Slab', serif; font-weight: 250; font-style: italic;
-  font-size: clamp(0.85rem, 2vw, 1.25rem); letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
+  font-size: clamp(0.7rem, 3vw, 1.25rem); 
+  letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
   text-transform: lowercase; margin-top: 0.6rem; text-shadow: 0 1px 12px rgba(0,0,0,0.8);
   white-space: nowrap; outline: none; cursor: default;
 }
@@ -337,20 +340,20 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 ══════════════════════════════════════ */
 .about-links { 
   display: flex; 
-  gap: 1.2rem; 
+  gap: 1.5rem; 
   margin-top: 2rem; 
 }
-
-/* SVG (Twitter, VGen, Email) akan diwarnai otomatis (currentColor/putih/abu) oleh var(--text) */
-.about-link-icon { 
+.about-link-icon-svg { 
   width: 24px; 
   height: 24px; 
-  fill: var(--text); /* Otomatis jadi putih/terang */
+  /* Trik jitu: 'currentColor' akan memaksa ikon SVG mengambil warna font web kamu otomatis! */
+  fill: currentColor; 
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
 }
 
+/* Memperbaiki ukuran gambar kustom untuk Sosmed jika dipakai dari Admin Panel */
 .about-link-icon-img {
   width: 24px; 
   height: 24px; 
@@ -358,33 +361,35 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
+  filter: brightness(0) invert(1); /* Bikin gambar apapun jadi putih/abu-abu otomatis */
 }
 
-/* Penanganan agar tidak ada warna biru default dari <a> */
+/* Menghilangkan garis biru bawaan dari <a> link HTML */
 .about-links a { 
   text-decoration: none; 
   border: none; 
   outline: none;
-  color: var(--text) !important; /* Paksa warna text di dalam A agar SVG ikut terang */
   display: inline-flex; 
   align-items: center; 
   justify-content: center; 
+  color: var(--text); /* Set warna default untuk currentColor dari SVG */
 }
-
-.about-links a:hover .about-link-icon, 
+.about-links a:hover .about-link-icon-svg, 
 .about-links a:hover .about-link-icon-img { 
   opacity: 1; 
   transform: scale(1.15); 
 }
 
-/* Garis edit mode admin */
-body.edit-enabled .about-link-icon, 
-body.edit-enabled .about-link-icon-img { 
+/* Kotak garis putus-putus saat mode Admin aktif */
+body.edit-enabled .about-link-icon-svg,
+body.edit-enabled .about-link-icon-img,
+body.edit-enabled #icon-container-twitter,
+body.edit-enabled #icon-container-vgen,
+body.edit-enabled #icon-container-email { 
   outline: 1px dashed var(--muted2); 
   outline-offset: 8px; 
   border-radius: 2px; 
 }
-body.edit-enabled .about-links a:hover .about-link-icon, 
-body.edit-enabled .about-links a:hover .about-link-icon-img { 
+body.edit-enabled .about-links a:hover { 
   outline: 1px solid var(--accent); 
 }
