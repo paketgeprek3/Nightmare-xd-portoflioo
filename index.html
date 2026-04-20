@@ -13,14 +13,14 @@
   <link rel="stylesheet" href="style.css">
 
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');}}catch(e){}
+    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
   </script>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script defer src="script.js"></script>
 </head>
-<body style="background-color: #0a0a0a; color: #e8e8e8;">
+<body>
 
 <nav>
   <div class="nav-left">
@@ -232,15 +232,15 @@
     </a>
     
     <a href="#" id="link-vgen" target="_blank" onclick="handleLinkClick(event, 'VGen URL')" title="VGen">
-      <img src="VGen Badge - outline_00000.png" alt="VGen" class="about-link-icon-img" />
+      <img src="vgen.png" alt="" class="about-link-icon-img" />
     </a>
     
-    <a href="#" id="link-email" target="_blank" onclick="handleLinkClick(event, 'Email Link (contoh: mailto:kamu@email.com)')" title="Email">
+    <a href="#" id="link-email" target="_blank" onclick="handleLinkClick(event, 'Email Link (contoh: mailto:admin@email.com)')" title="Email">
       <svg class="about-link-icon" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
     </a>
   </div>
-  <div class="about-hint">↑ CLICK ANY TEXT OR ICON TO EDIT &nbsp;·&nbsp; USE THE SAME SHORTCUT TO EXIT</div>
 
+  <div class="about-hint">↑ CLICK ANY TEXT OR ICON TO EDIT &nbsp;·&nbsp; USE THE SAME SHORTCUT TO EXIT</div>
 </div>
 
 <button id="edit-fab" onclick="openAddModal()" title="Add video">+</button>
