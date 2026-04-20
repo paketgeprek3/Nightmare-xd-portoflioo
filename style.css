@@ -338,43 +338,33 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
 ══════════════════════════════════════ */
 .about-links { 
   display: flex; 
-  gap: 1.5rem; 
+  gap: 1.2rem; 
   margin-top: 2rem; 
 }
-
-/* SVG (Twitter, Email) */
 .about-link-icon { 
-  width: 24px; 
-  height: 24px; 
-  fill: var(--text); /* Warna putih/terang menyesuaikan tema */
+  width: 22px; 
+  height: 22px; 
+  fill: var(--text); 
   transition: all 0.2s; 
   cursor: pointer; 
-  opacity: 0.6;
+  opacity: 0.8;
 }
-
-/* Image (VGen) */
 .about-link-icon-img {
-  width: 24px; 
-  height: 24px; 
-  object-fit: contain; /* Agar logo vgen presisi & tidak gepeng */
+  width: 22px; 
+  height: 22px; 
+  object-fit: contain;
   transition: all 0.2s; 
   cursor: pointer; 
-  opacity: 0.6;
+  opacity: 0.8;
 }
-
-/* Efek Hover (Arahkan Mouse) */
-.about-links a { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
-.about-links a:hover .about-link-icon, 
-.about-links a:hover .about-link-icon-img { 
+.about-link-icon:hover, .about-link-icon-img:hover { 
   opacity: 1; 
   transform: scale(1.15); 
 }
-
-/* Tanda Edit (Garis putus-putus) khusus di Mode Admin */
 body.edit-enabled .about-link-icon, 
 body.edit-enabled .about-link-icon-img { 
   outline: 1px dashed var(--muted2); 
-  outline-offset: 8px; 
+  outline-offset: 6px; 
   border-radius: 2px; 
 }
 body.edit-enabled .about-links a:hover .about-link-icon, 
