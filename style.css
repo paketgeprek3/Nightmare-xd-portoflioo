@@ -341,26 +341,31 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
   gap: 1.5rem; 
   margin-top: 2rem; 
 }
+
+/* SVG (Twitter, Email) */
 .about-link-icon { 
   width: 24px; 
   height: 24px; 
-  fill: var(--text); /* Warna solid (putih/off-white) mengikuti teks web */
+  fill: var(--text); /* Warna putih/terang menyesuaikan tema */
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
 }
 
-/* Khusus untuk ikon VGen (file .png) agar ukurannya matching */
+/* Image (VGen) */
 .about-link-icon-img {
   width: 24px; 
   height: 24px; 
-  object-fit: contain;
+  object-fit: contain; /* Agar logo vgen presisi & tidak gepeng */
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
 }
 
-.about-link-icon:hover, .about-link-icon-img:hover { 
+/* Efek Hover (Arahkan Mouse) */
+.about-links a { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.about-links a:hover .about-link-icon, 
+.about-links a:hover .about-link-icon-img { 
   opacity: 1; 
   transform: scale(1.15); 
 }
@@ -372,7 +377,7 @@ body.edit-enabled .about-link-icon-img {
   outline-offset: 8px; 
   border-radius: 2px; 
 }
-body.edit-enabled .about-link-icon:hover, 
-body.edit-enabled .about-link-icon-img:hover { 
+body.edit-enabled .about-links a:hover .about-link-icon, 
+body.edit-enabled .about-links a:hover .about-link-icon-img { 
   outline: 1px solid var(--accent); 
 }
