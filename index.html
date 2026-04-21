@@ -4,8 +4,17 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MV Portfolio</title>
-  <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
   
+  <style>
+    html, body {
+      background-color: #0a0a0a !important;
+      color: #e8e8e8 !important;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+
+  <link rel="icon" id="favicon-link" type="image/png" href="data:image/png;base64,iVBORw0KGgo="/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Doto:wght@100..900&family=Josefin+Slab:ital,wght@0,250;1,250&family=Noto+Sans+JP:wght@300;400;500&family=Space+Mono:wght@400;700&display=block" rel="stylesheet"/>
@@ -13,7 +22,25 @@
   <link rel="stylesheet" href="style.css">
 
   <script>
-    try{const c=localStorage.getItem('mv_settings_cache');if(c){const s=JSON.parse(c);if(s.hero_fontsize)document.documentElement.style.setProperty('--hero-fs',s.hero_fontsize+'rem');if(s.hero_opacity!==undefined)document.documentElement.style.setProperty('--hero-op',s.hero_opacity/100);if(s.hero_rowheight)document.documentElement.style.setProperty('--hero-rh',s.hero_rowheight+'px');if(s.hero_speed)document.documentElement.style.setProperty('--hero-sp',s.hero_speed+'s');if(s.colors){Object.entries(s.colors).forEach(([k,v])=>{if(k.startsWith('--')&&k!=='--nav-bg')document.documentElement.style.setProperty(k,v);});}}}catch(e){}
+    try {
+      const c = localStorage.getItem('mv_settings_cache');
+      if (c) {
+        const s = JSON.parse(c);
+        if (s.hero_fontsize) document.documentElement.style.setProperty('--hero-fs', s.hero_fontsize + 'rem');
+        if (s.hero_opacity !== undefined) {
+          let op = parseInt(s.hero_opacity);
+          if (op < 5) op = 40; // Rescue system: Cegah opacity 0% yang bikin gambar hilang
+          document.documentElement.style.setProperty('--hero-op', op / 100);
+        }
+        if (s.hero_rowheight) document.documentElement.style.setProperty('--hero-rh', s.hero_rowheight + 'px');
+        if (s.hero_speed) document.documentElement.style.setProperty('--hero-sp', s.hero_speed + 's');
+        if (s.colors) {
+          Object.entries(s.colors).forEach(([k, v]) => {
+            if (k.startsWith('--') && k !== '--nav-bg') document.documentElement.style.setProperty(k, v);
+          });
+        }
+      }
+    } catch(e) {}
   </script>
 
   <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -100,7 +127,6 @@
       <input type="color" id="cp-about-body" value="#aaaaaa" oninput="applyDirectColor('about-body', 'color', this.value); this.parentElement.style.background=this.value"/>
     </div>
   </div>
-  
   <div class="cp-divider"></div>
   
   <div class="cp-title" style="margin-bottom:0.6rem">SITE ICON <span style="color:var(--muted);font-size:0.5rem">TAB FAVICON</span></div>
@@ -117,13 +143,14 @@
       <input type="file" accept="image/*" style="display:none" onchange="handleFaviconFile(this)"/>
     </label>
   </div>
-  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem">
-    <label class="cp-label">Or paste image URL</label>
+  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem;">
     <div style="display:flex;gap:0.4rem">
-      <input type="text" id="favicon-url-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="https://i.imgur.com/xxx.png"/>
+      <input type="text" id="favicon-url-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="Image URL"/>
       <button onclick="applyFaviconUrl()" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:Space Mono,monospace;font-size:0.58rem;padding:0 0.6rem;cursor:pointer;border-radius:2px;white-space:nowrap;transition:all .18s" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">SET</button>
     </div>
   </div>
+
+  <div class="cp-divider"></div>
 
   <div class="cp-title" style="margin-bottom:0.6rem">TWITTER ICON <span style="color:var(--muted);font-size:0.5rem">CUSTOM IMAGE</span></div>
   <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.6rem">
@@ -137,7 +164,7 @@
       <input type="file" accept="image/*" style="display:none" onchange="handleSocialIconFile(this, 'twitter')"/>
     </label>
   </div>
-  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem">
+  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem;">
     <div style="display:flex;gap:0.4rem">
       <input type="text" id="twitter-icon-url-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="Image URL"/>
       <button onclick="applySocialIconUrl('twitter')" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:Space Mono,monospace;font-size:0.58rem;padding:0 0.6rem;cursor:pointer;border-radius:2px;">SET</button>
@@ -156,7 +183,7 @@
       <input type="file" accept="image/*" style="display:none" onchange="handleSocialIconFile(this, 'vgen')"/>
     </label>
   </div>
-  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem">
+  <div class="cp-row" style="flex-direction:column;align-items:stretch;gap:0.3rem;margin-bottom:1rem;">
     <div style="display:flex;gap:0.4rem">
       <input type="text" id="vgen-icon-url-input" class="form-input" style="font-size:0.65rem;padding:0.4rem 0.6rem" placeholder="Image URL"/>
       <button onclick="applySocialIconUrl('vgen')" style="background:var(--surface);border:1px solid var(--border);color:var(--muted);font-family:Space Mono,monospace;font-size:0.58rem;padding:0 0.6rem;cursor:pointer;border-radius:2px;">SET</button>
@@ -186,6 +213,7 @@
   <button class="cp-save" onclick="saveColors()">SAVE COLORS</button>
   <button class="cp-reset" onclick="resetColors()">RESET TO DEFAULT</button>
   <div class="cp-divider"></div>
+  
   <div class="cp-title">HERO TEXT <span>● LOGO</span></div>
   <div class="cp-row" style="flex-direction:column;align-items:flex-start;gap:0.3rem">
     <div class="cp-label">Main Title</div>
@@ -211,9 +239,9 @@
   <div class="cp-divider"></div>
   <div class="cp-title">HERO PREVIEW <span>● THUMBNAIL STRIP</span></div>
   <div class="cp-row">
-    <div class="cp-label">Opacity (0–100%)</div>
+    <div class="cp-label">Opacity (5–100%)</div>
     <div style="display:flex;align-items:center;gap:0.5rem;flex:1">
-      <input type="range" id="hc-opacity" min="0" max="100" step="1" value="40"
+      <input type="range" id="hc-opacity" min="5" max="100" step="1" value="40"
         style="flex:1;accent-color:#fff"
         oninput="liveHeroOpacity(this.value);document.getElementById('hc-opacity-val').textContent=this.value+'%'"/>
       <span id="hc-opacity-val" style="font-family:Space Mono,monospace;font-size:0.6rem;color:var(--muted);min-width:2.5rem">40%</span>
@@ -287,6 +315,7 @@
         <svg class="about-link-icon-svg" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
       </span>
     </a>
+    
     <a href="#" id="link-vgen" target="_blank" onclick="handleLinkClick(event, 'VGen URL')" title="VGen">
       <span id="icon-container-vgen">
         <svg class="about-link-icon-svg" viewBox="0 0 256 256">
@@ -294,6 +323,7 @@
         </svg>
       </span>
     </a>
+    
     <a href="#" id="link-email" target="_blank" onclick="handleLinkClick(event, 'Email Link (contoh: mailto:admin@email.com)')" title="Email">
       <span id="icon-container-email">
         <svg class="about-link-icon-svg" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
