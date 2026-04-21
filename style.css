@@ -111,19 +111,16 @@ body.edit-enabled #site-title-input:hover { color: var(--accent); }
 }
 @keyframes heroFadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
 
-/* PERBAIKAN RESPONSIVE: Menggunakan fungsi clamp() agar teks mengecil otomatis di layar HP */
 .hero-title {
   font-family: 'Doto', monospace; font-weight: 480; font-variation-settings: 'wght' 480;
-  font-size: clamp(2rem, 10vw, var(--hero-fs, 7rem)); 
-  letter-spacing: 0.06em;
+  font-size: var(--hero-fs, clamp(3.2rem, 7.5vw, 7rem)); letter-spacing: 0.06em;
   color: #fff; line-height: 1;
   text-shadow: 0 0 40px rgba(255,255,255,0.18), 0 0 80px rgba(255,255,255,0.07), 0 2px 30px rgba(0,0,0,0.9);
   white-space: nowrap; outline: none; cursor: default;
 }
 .hero-subtitle {
   font-family: 'Josefin Slab', serif; font-weight: 250; font-style: italic;
-  font-size: clamp(0.7rem, 3vw, 1.25rem); 
-  letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
+  font-size: clamp(0.85rem, 2vw, 1.25rem); letter-spacing: 0.22em; color: rgba(255,255,255,0.55);
   text-transform: lowercase; margin-top: 0.6rem; text-shadow: 0 1px 12px rgba(0,0,0,0.8);
   white-space: nowrap; outline: none; cursor: default;
 }
@@ -311,7 +308,25 @@ body.edit-enabled .about-hint { display:block; }
 #toast.on { opacity:1; }
 
 @media(max-width:1100px){ .masonry-grid { grid-template-columns: repeat(3, 1fr); } }
-@media(max-width:768px){ nav { padding:0 1.2rem; } .filter-bar { padding:.75rem 1rem; } .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* PERBAIKAN LOGO NIGHTMARE TEMBUS DI MOBILE (HP) */
+@media(max-width:768px){ 
+  nav { padding:0 1.2rem; } 
+  .filter-bar { padding:.75rem 1rem; } 
+  .masonry-grid { grid-template-columns: repeat(2, 1fr); } 
+  
+  /* Ukuran Font otomatis mengecil di HP agar tidak tembus/overflow */
+  .hero-title { 
+    font-size: min(var(--hero-fs, 7rem), 12vw) !important; 
+    white-space: normal !important; 
+    word-break: break-word; 
+  }
+  .hero-subtitle { 
+    font-size: clamp(0.75rem, 3.5vw, 1.25rem) !important; 
+    white-space: normal !important; 
+  }
+}
+
 @media(max-width:480px){ .masonry-grid { grid-template-columns: repeat(2, 1fr); } }
 
 #cp-toggle-btn { display: none; background: transparent; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.58rem; letter-spacing: 0.12em; padding: 0.3rem 0.7rem; cursor: pointer; border-radius: 2px; transition: all 0.18s; white-space: nowrap; }
@@ -353,7 +368,7 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
   opacity: 0.6;
 }
 
-/* Memperbaiki ukuran gambar kustom untuk Sosmed jika dipakai dari Admin Panel */
+/* Memperbaiki warna & ukuran gambar kustom untuk Sosmed jika dipakai dari Admin Panel */
 .about-link-icon-img {
   width: 24px; 
   height: 24px; 
@@ -361,18 +376,19 @@ body.edit-enabled #cp-toggle-btn { display: inline-flex; align-items: center; ga
   transition: all 0.2s; 
   cursor: pointer; 
   opacity: 0.6;
-  filter: brightness(0) invert(1); /* Bikin gambar apapun jadi putih/abu-abu otomatis */
+  /* Filter ajaib: Apapun warna gambar kustommu (hitam/biru dll), akan disulap otomatis jadi putih/abu-abu! */
+  filter: brightness(0) invert(1);
 }
 
-/* Menghilangkan garis biru bawaan dari <a> link HTML */
+/* Menghilangkan garis & warna biru bawaan dari <a> link HTML */
 .about-links a { 
-  text-decoration: none; 
+  text-decoration: none !important; 
   border: none; 
   outline: none;
   display: inline-flex; 
   align-items: center; 
   justify-content: center; 
-  color: var(--text); /* Set warna default untuk currentColor dari SVG */
+  color: var(--text) !important; /* Memaksa warna netral agar tidak biru di klik/kunjungi */
 }
 .about-links a:hover .about-link-icon-svg, 
 .about-links a:hover .about-link-icon-img { 
