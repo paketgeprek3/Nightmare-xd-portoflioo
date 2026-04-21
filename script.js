@@ -12,7 +12,7 @@
   let keyBuf     = '';
   let keyTmr     = null;
   
-  // Variabel untuk menyimpan gambar icon custom dari Admin panel
+  // Cache untuk Custom Icon Sosmed
   let iconCache = { twitter: null, vgen: null, email: null };
 
   const _wa=[106,69,124,108,53],_wb=[11,33,17,5,91];
@@ -225,7 +225,7 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // --- BAGIAN INI SAMA PERSIS 100% DENGAN SCRIPT ASLIMU ---
+  // --- FUNGSI HERO TANPA INLINE OPACITY ---
   function populateHero() {
     const rows = ['hero-row1','hero-row2','hero-row3'].map(id => document.getElementById(id));
     if (!rows[0]) return;
@@ -239,15 +239,13 @@
     const row2 = [...base.slice(Math.floor(base.length*2/3)), ...base.slice(0, Math.floor(base.length*2/3))];
     const sets = [row0, row1, row2];
 
-    const op = (window._heroOpacity !== undefined) ? window._heroOpacity : 0.4;
     function makeImgs(arr) {
-      const imgs = arr.map(src => `<img class="hero-thumb" src="${src}" alt="" loading="lazy" style="opacity:${op}" onerror="this.style.display='none'">`).join('');
+      const imgs = arr.map(src => `<img class="hero-thumb" src="${src}" alt="" loading="lazy" onerror="this.style.display='none'">`).join('');
       return imgs + imgs;
     }
 
     rows.forEach((row, i) => { if (row) row.innerHTML = makeImgs(sets[i]); });
   }
-  // --------------------------------------------------------
 
   let _dragging = false;
   function handleItemClick(e, id) {
@@ -457,6 +455,58 @@
     if (!error) { toast('Deleted'); closeModal(); await loadVideos(); } else toast('Error: '+error.message);
   }
 
+  // --- Fungsi Load Custom Ikon Sosmed dari DB ---
+  function setSocialIcon(type, dataUrl) {
+    iconCache[type] = dataUrl;
+    const container = document.getElementById(`icon-container-${type}`);
+    if (container) container.innerHTML = `<img src="${dataUrl}" class="about-link-icon-img" />`;
+    const preview = document.getElementById(`${type}-icon-preview`);
+    if (preview) preview.innerHTML = `<img src="${dataUrl}" style="width:20px;height:20px;object-fit:contain;opacity:0.6;filter:brightness(0) invert(1);"/>`;
+  }
+
+  function handleSocialIconFile(input, type) {
+    const file = input.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('Please select an image file'); return; }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target.result;
+      setSocialIcon(type, dataUrl);
+      await saveSocialIcon(type, dataUrl);
+      toast(`${type.toUpperCase()} Icon updated ✓`);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function applySocialIconUrl(type) {
+    const url = document.getElementById(`${type}-icon-url-input`).value.trim();
+    if (!url) { toast('Please enter an image URL'); return; }
+    try {
+      const img = new Image(); img.crossOrigin = 'anonymous';
+      img.onload = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width > 256 ? 256 : img.width;
+        canvas.height = img.height > 256 ? 256 : img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/png');
+        setSocialIcon(type, dataUrl);
+        await saveSocialIcon(type, dataUrl);
+        toast(`${type.toUpperCase()} Icon updated ✓`);
+      };
+      img.onerror = () => { setSocialIcon(type, url); saveSocialIcon(type, url); toast(`${type.toUpperCase()} Icon set ✓`); };
+      img.src = url;
+    } catch(e) { setSocialIcon(type, url); await saveSocialIcon(type, url); toast(`${type.toUpperCase()} Icon set ✓`); }
+  }
+
+  async function saveSocialIcon(type, dataUrl) {
+    const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
+    const ex = (data && data.value) || {};
+    ex[`icon_${type}`] = dataUrl;
+    const { error } = await sb.from('mv_settings').upsert({ key:'site', value: ex });
+    if (error) toast(`Error saving ${type} icon`);
+  }
+
   async function loadSettings() {
     const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
     if (data && data.value) {
@@ -469,12 +519,12 @@
       if (s.colors) loadColors(s.colors);
       if (s.favicon) loadFavicon(s.favicon);
       
-      // Load Links dari Database ke dalam HTML
+      // Load Links
       if (s.link_twitter) document.getElementById('link-twitter').setAttribute('href', s.link_twitter);
       if (s.link_vgen) document.getElementById('link-vgen').setAttribute('href', s.link_vgen);
       if (s.link_email) document.getElementById('link-email').setAttribute('href', s.link_email);
 
-      // Load Custom Icons dari Database untuk ditimpa ke dalam container HTML
+      // Load Custom Icons
       if (s.icon_twitter) setSocialIcon('twitter', s.icon_twitter);
       if (s.icon_vgen) setSocialIcon('vgen', s.icon_vgen);
       if (s.icon_email) setSocialIcon('email', s.icon_email);
@@ -486,7 +536,13 @@
   function liveHeroTitle(v) { const el = document.getElementById('hero-title-text'); if (el) el.textContent = v || 'Nightmare XD'; }
   function liveHeroSubtitle(v) { const el = document.getElementById('hero-subtitle-text'); if (el) el.textContent = v || 'motion designer'; }
   function liveHeroSize(v) { document.documentElement.style.setProperty('--hero-fs', v + 'rem'); const sl = document.getElementById('hc-fontsize'); const lb = document.getElementById('hc-fontsize-val'); if (sl) sl.value = v; if (lb) lb.textContent = v + 'rem'; }
-  function liveHeroOpacity(v) { document.querySelectorAll('.hero-thumb').forEach(img => { img.style.opacity = (v / 100).toFixed(2); }); window._heroOpacity = v / 100; }
+  
+  // Fungsi opacity dengan Rescue System anti 0% yang mematikan background
+  function liveHeroOpacity(v) { 
+    let op = parseInt(v);
+    if (op < 5) op = 40; 
+    document.documentElement.style.setProperty('--hero-op', op / 100); 
+  }
   function liveHeroRowHeight(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.height = v + 'px'; }); }
   function liveHeroSpeed(v) { document.querySelectorAll('.hero-strip').forEach(row => { row.style.animationDuration = v + 's'; }); }
 
@@ -512,12 +568,17 @@
     if (s.hero_title && tt) { tt.textContent = s.hero_title; const i=document.getElementById('hc-title'); if(i) i.value=s.hero_title; }
     if (s.hero_subtitle && st) { st.textContent = s.hero_subtitle; const i=document.getElementById('hc-subtitle'); if(i) i.value=s.hero_subtitle; }
     if (s.hero_fontsize) { liveHeroSize(s.hero_fontsize); }
-    if (s.hero_opacity !== undefined) { liveHeroOpacity(s.hero_opacity); const sl=document.getElementById('hc-opacity'); if(sl) sl.value=s.hero_opacity; const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=s.hero_opacity+'%'; }
+    if (s.hero_opacity !== undefined) { 
+      let op = parseInt(s.hero_opacity);
+      if (op < 5) op = 40; // Rescue system
+      liveHeroOpacity(op); 
+      const sl=document.getElementById('hc-opacity'); if(sl) sl.value=op; 
+      const lb=document.getElementById('hc-opacity-val'); if(lb) lb.textContent=op+'%'; 
+    }
     if (s.hero_rowheight) { liveHeroRowHeight(s.hero_rowheight); const sl=document.getElementById('hc-rowheight'); if(sl) sl.value=s.hero_rowheight; const lb=document.getElementById('hc-rh-val'); if(lb) lb.textContent=s.hero_rowheight+'px'; }
     if (s.hero_speed) { liveHeroSpeed(s.hero_speed); const sl=document.getElementById('hc-speed'); if(sl) sl.value=s.hero_speed; const lb=document.getElementById('hc-speed-val'); if(lb) lb.textContent=s.hero_speed+'s'; }
   }
 
-  // --- Fungsi Pop-up Edit URL Tautan ---
   function handleLinkClick(e, label) {
     if (_ue) {
       e.preventDefault(); 
@@ -525,11 +586,11 @@
       let currentLink = el.getAttribute('href');
       if (currentLink === '#') currentLink = '';
       
-      const newLink = prompt(`Set URL untuk ${label}\n(Contoh: https://vgen.co/nama atau mailto:kamu@email.com):`, currentLink);
+      const newLink = prompt(`Set URL untuk ${label}\n(Untuk Email wajib awali dengan mailto:emailkamu@gmail.com)\n\nURL saat ini:`, currentLink);
       
       if (newLink !== null) {
         el.setAttribute('href', newLink.trim() || '#');
-        saveAbout(); // Save ke database Supabase
+        saveAbout();
       }
     } else {
       if (e.currentTarget.getAttribute('href') === '#') {
@@ -545,7 +606,6 @@
       about_name: document.getElementById('about-name').textContent,
       about_role: document.getElementById('about-role').textContent,
       about_body: document.getElementById('about-body').textContent,
-      // Mengambil link URL terbaru dari attribute href HTML
       link_twitter: document.getElementById('link-twitter').getAttribute('href'),
       link_vgen: document.getElementById('link-vgen').getAttribute('href'),
       link_email: document.getElementById('link-email').getAttribute('href')
@@ -553,59 +613,6 @@
     await sb.from('mv_settings').upsert({ key:'site', value:s });
     toast('Saved ✓');
   }
-
-  // --- Fungsi Upload Custom Ikon Sosmed (Twitter, VGen, Email) ---
-  function setSocialIcon(type, dataUrl) {
-    iconCache[type] = dataUrl;
-    const container = document.getElementById(`icon-container-${type}`);
-    if (container) container.innerHTML = `<img src="${dataUrl}" class="about-link-icon-img" />`;
-    const preview = document.getElementById(`${type}-icon-preview`);
-    if (preview) preview.innerHTML = `<img src="${dataUrl}" style="width:20px;height:20px;object-fit:contain;opacity:0.6;"/>`;
-  }
-
-  function handleSocialIconFile(input, type) {
-    const file = input.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { toast('Please select an image file'); return; }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target.result;
-      setSocialIcon(type, dataUrl);
-      await saveSocialIcon(type, dataUrl);
-      toast(`${type} Icon updated ✓`);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async function applySocialIconUrl(type) {
-    const url = document.getElementById(`${type}-icon-url-input`).value.trim();
-    if (!url) { toast('Please enter an image URL'); return; }
-    try {
-      const img = new Image(); img.crossOrigin = 'anonymous';
-      img.onload = async () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width > 64 ? 64 : img.width;
-        canvas.height = img.height > 64 ? 64 : img.height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/png');
-        setSocialIcon(type, dataUrl);
-        await saveSocialIcon(type, dataUrl);
-        toast(`${type} Icon updated ✓`);
-      };
-      img.onerror = () => { setSocialIcon(type, url); saveSocialIcon(type, url); toast(`${type} Icon set ✓ (direct URL)`); };
-      img.src = url;
-    } catch(e) { setSocialIcon(type, url); await saveSocialIcon(type, url); toast(`${type} Icon set ✓`); }
-  }
-
-  async function saveSocialIcon(type, dataUrl) {
-    const { data } = await sb.from('mv_settings').select('*').eq('key','site').maybeSingle();
-    const ex = (data && data.value) || {};
-    ex[`icon_${type}`] = dataUrl;
-    const { error } = await sb.from('mv_settings').upsert({ key:'site', value: ex });
-    if (error) toast(`Error saving ${type} icon`);
-  }
-  // --- Akhir Fungsi Upload Ikon ---
 
   async function saveSiteTitle(val) {
     if(!_ue) return;
